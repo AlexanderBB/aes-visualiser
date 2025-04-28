@@ -242,7 +242,3 @@ def normalize_event(event):
 def handler(event, context):
     event = normalize_event(event)
     return response(app, event, context)
-
-## Лиценз
-# Този проект е лицензиран под MIT License. Можете да използвате, копирате и модифицирате кода свободно,
-# като спазвате условията на лиценза.

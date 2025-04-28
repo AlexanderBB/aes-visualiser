@@ -48,16 +48,10 @@ cd aes-visualiser
 
 ## 3. Деплой на Lambda (One-click)
 
-1. Направете скрипта изпълним:
+1. Стартирайте деплоя:
 
 ```bash
-chmod +x full_deploy.sh
-```
-
-2. Стартирайте деплоя:
-
-```bash
-./full_deploy.sh
+bash deployment/full_deployment.sh
 ```
 
 ## 4. Резултат

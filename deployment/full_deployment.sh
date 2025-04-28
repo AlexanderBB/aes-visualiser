@@ -98,7 +98,9 @@ if aws lambda get-function --function-name "$LAMBDA_FUNCTION_NAME" --region "$AW
     aws lambda update-function-configuration \
       --function-name "$LAMBDA_FUNCTION_NAME" \
       --layers "$LAYER_VERSION_ARN" \
-      --region "$AWS_REGION"
+      --region "$AWS_REGION" \
+      --no-cli-pager
+    sleep 5
 else
     echo "✨ Function does not exist. Creating a new function..."
     zip -r deployment.zip app.py templates/ static/
@@ -109,7 +111,9 @@ else
       --handler "app.handler" \
       --layers "$LAYER_VERSION_ARN" \
       --zip-file fileb://deployment.zip \
-      --region "$AWS_REGION"
+      --region "$AWS_REGION" \
+      --no-cli-pager
+    sleep 5
 fi
 
 # 8. Пакетиране на приложението
@@ -121,7 +125,8 @@ echo "🚀 Updating Lambda function code..."
 aws lambda update-function-code \
   --function-name "$LAMBDA_FUNCTION_NAME" \
   --zip-file fileb://deployment.zip \
-  --region "$AWS_REGION"
+  --region "$AWS_REGION" \
+  --no-cli-pager
 
 # 10. Проверка за Function URL
 echo "🔎 Checking for Function URL..."
@@ -145,6 +150,17 @@ if [ -z "$FUNCTION_URL" ]; then
       --query 'FunctionUrl' \
       --output text)
 fi
+
+# 10.1 Добавяне на публична политика за invoke на Function URL
+echo "🔒 Adding public invoke permission to the Function URL..."
+aws lambda add-permission \
+  --function-name "$LAMBDA_FUNCTION_NAME" \
+  --action lambda:InvokeFunctionUrl \
+  --principal "*" \
+  --function-url-auth-type NONE \
+  --statement-id allow-public-invoke \
+  --region "$AWS_REGION" \
+  --no-cli-pager || true
 
 # 11. Финално съобщение
 echo ""

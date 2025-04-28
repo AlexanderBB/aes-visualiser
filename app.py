@@ -1,5 +1,5 @@
 from awsgi import response
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, render_template
 import binascii
 
 app = Flask(__name__)
@@ -39,17 +39,21 @@ Sbox = [
     0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
 ]
 
+
 # Helper Functions
 
 def pad(data):
     length = 16 - (len(data) % 16)
     return data + bytes([length]) * length
 
+
 def bytes_to_matrix(text):
-    return [list(text[i:i+4]) for i in range(0, len(text), 4)]
+    return [list(text[i:i + 4]) for i in range(0, len(text), 4)]
+
 
 def matrix_to_bytes(matrix):
     return bytes(sum(matrix, []))
+
 
 def sub_bytes(state, log):
     new_state = []
@@ -62,6 +66,7 @@ def sub_bytes(state, log):
         new_state.append(new_row)
     return new_state
 
+
 def shift_rows(state, log):
     shifted = [
         state[0],
@@ -72,6 +77,7 @@ def shift_rows(state, log):
     for i in range(4):
         log.append((f"Row {i}", f"{[hex(x) for x in state[i]]} → {[hex(x) for x in shifted[i]]}"))
     return shifted
+
 
 def add_round_key(state, round_key, log):
     new_state = []
@@ -84,6 +90,7 @@ def add_round_key(state, round_key, log):
         new_state.append(new_row)
     return new_state
 
+
 def matrix_to_html(matrix):
     html = "<table border='1' style='border-collapse: collapse; margin: 0 auto; padding: 10px;'>"
     for row in matrix:
@@ -94,6 +101,7 @@ def matrix_to_html(matrix):
         html += "</tr>"
     html += "</table>"
     return html
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -220,6 +228,7 @@ def index():
 if __name__ == '__main__':
     app.run(debug=True)
 
+
 def normalize_event(event):
     """Normalize AWS Function URL event to API Gateway v1 style."""
     if "httpMethod" not in event and "requestContext" in event and "http" in event["requestContext"]:
@@ -234,11 +243,6 @@ def handler(event, context):
     event = normalize_event(event)
     return response(app, event, context)
 
-
-# def handler(event, context):
-#     from importlib.metadata import version
-#
-#     print("Flask version" + version('flask'))
-#     print("Mangun version" + version('mangum'))
-#     asgi_handler = Mangum(app)
-#     return asgi_handler(event, context)
+## Лиценз
+# Този проект е лицензиран под MIT License. Можете да използвате, копирате и модифицирате кода свободно,
+# като спазвате условията на лиценза.

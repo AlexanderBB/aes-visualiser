@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AES Visualization</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>AES Step-by-Step Visualization</h1>
+
+    {% for step in steps %}
+        <div class="step{% if 'Final' in step.title %} final-step{% endif %}" style="animation-delay: {{ loop.index0 }}s;">
+            {% if step.matrix_html %}
+                <div class="step-container">
+                    <div class="matrix step-{{ loop.index }}">
+                        <h3>{{ step.title }}</h3>
+                        {{ step.matrix_html | safe }}
+                    </div>
+                    <div class="text">
+                        {% if step.description %}
+                            <p class="step-description">{{ step.description }}</p>
+                        {% endif %}
+                        <button class="toggle-btn" data-target="{{ step.id_suffix }}">View Details</button>
+                        <div class="explanation-content" id="{{ step.id_suffix }}" style="display: none;">
+                            <div style="display: flex; justify-content: flex-end;">
+                                <button class="copy-icon-btn" data-target="{{ step.id_suffix }}" type="button">
+                                    <div class="copy-content">
+                                        <span class="copied-text">Copied!</span>
+                                        <img src="" alt="Copy">
+                                    </div>
+                                </button>
+                            </div>
+                            <div class="table-wrapper">
+                                <table>
+                                    <tr><th>Operation</th><th>Result</th></tr>
+                                    {% for line in step.explanation_rows %}
+                                        <tr><td>{{ line[0] }}</td><td>{{ line[1] }}</td></tr>
+                                    {% endfor %}
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <h3>{{ step.title }}</h3>
+                {% if step.description %}
+                    <p class="step-description">{{ step.description }}</p>
+                {% endif %}
+                <div class="final-result-box">
+                  {{ step.explanation_rows[0][1] }}
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+    <div class="floating-buttons">
+        <button id="scrollTopBtn" class="btn-float btn-scroll-top" title="Back to Top">&#8679;</button>
+        <a href="/" class="btn-float btn-new-values" title="Encrypt New Values"><span class="plus-icon" style="text-decoration: none;">+</span></a>
+    </div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

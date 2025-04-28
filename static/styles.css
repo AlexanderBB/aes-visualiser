@@ -1,0 +1,245 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f2f7fc;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Landing Page */
+.landing-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    height: 100vh;
+    padding-top: 10vh;
+}
+
+.landing-box {
+    background: #ffffff;
+    padding: 40px 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 320px;
+    animation: fadeIn 1s ease-in-out;
+}
+
+.landing-box h1 {
+    margin-bottom: 20px;
+    color: #3c4d7a;
+}
+
+.landing-box input[type="text"] {
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #cce0ff;
+    border-radius: 8px;
+}
+
+.landing-box input[type="submit"] {
+    background-color: #66b3ff;
+    color: white;
+    border: none;
+    padding: 12px;
+    width: 100%;
+    margin-top: 10px;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.landing-box input[type="submit"]:hover {
+    background-color: #3399ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+}
+
+.landing-box input[type="submit"]:active {
+    transform: scale(0.97);
+}
+
+/* Steps Page */
+h1 {
+    text-align: center;
+    margin: 40px 0 20px;
+    color: #3c4d7a;
+}
+
+.step {
+    background: #ffffff;
+    margin: 30px auto;
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 1100px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+    animation: fadeInStep 1s forwards;
+    opacity: 0;
+}
+
+.step.final-step {
+    background: #e6f0ff;
+    text-align: center;
+    flex-direction: column;
+}
+
+.step-container {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+    gap: 30px;
+}
+
+.matrix {
+    flex: 1;
+    background: #f9fbfd;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.matrix table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.matrix table, .matrix th, .matrix td {
+    border: 1px solid #cce0ff;
+}
+
+.matrix th, .matrix td {
+    padding: 10px;
+    text-align: center;
+    border-radius: 8px;
+}
+
+.text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.step-description {
+    color: #666;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.toggle-btn {
+    background: #66b3ff;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 20px;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.toggle-btn:hover {
+    background: #3399ff;
+}
+
+.explanation-content {
+    margin-top: 20px;
+    display: none;
+    text-align: center;
+}
+
+.table-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.copy-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.copy-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.copy-content img {
+    width: 24px;
+    height: 24px;
+}
+
+.copied-text {
+    margin-left: 8px;
+    color: green;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.copied-text.show {
+    opacity: 1;
+}
+
+.floating-buttons {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-float {
+    width: 55px;
+    height: 55px;
+    background: #66b3ff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 24px;
+    text-align: center;
+    line-height: 55px;
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+a.btn-float {
+    text-decoration: none;
+}
+
+.btn-float:hover {
+    background: #3399ff;
+}
+
+.plus-icon {
+    font-size: 24px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInStep {
+    to { opacity: 1; }
+}

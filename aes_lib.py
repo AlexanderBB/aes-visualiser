@@ -1,7 +1,6 @@
 # AES Library Module
 # Contains shared functions for AES encryption used by both app.py and tests
 
-import binascii
 from flask import render_template, current_app
 
 # AES S-box

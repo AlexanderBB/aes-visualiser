@@ -35,10 +35,10 @@
             {% endif %}
                 {% if step.matrix_html %}
                     <div class="step-header">
-                        <h3>{{ step.title }}</h3>
-                        {% if 'Round' in step.title %}
+                        {% if 'Step' not in step.title %}
                             <div class="round-badge">{{ step.title.split(':')[0] }}</div>
                         {% endif %}
+                        <h3>{{ step.title.split(':')[1] }}</h3>
                     </div>
                     <div class="step-container">
                         <div class="matrix step-{{ loop.index }}">

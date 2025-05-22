@@ -35,18 +35,20 @@
     <h4>🧠 How Round Key {{ round_num }} Is Generated</h4>
     <ol>
         <li>Take last column (w3)<br>
-        → [{{ last_col|join(', ', attribute='hex') }}]</li>
+        → [{{ last_col | map('hex') | join(', ') }}]</li>
         <li>RotWord<br>
-        → [{{ rotated|join(', ', attribute='hex') }}]</li>
+        → [{{ rotated | map('hex') | join(', ') }}]</li>
         <li>SubBytes (S-box)<br>
-        → [{{ substituted|join(', ', attribute='hex') }}]</li>
+        → [{{ substituted | map('hex') | join(', ') }}]</li>
         <li>XOR with Rcon [{{ rcon|hex }}, 0x00, 0x00, 0x00]<br>
-        → [{{ substituted|join(', ', attribute='hex') }}]</li>
+        → [{{ substituted | map('hex') | join(', ') }}]</li>
         <li>w4 = w0 ⊕ result<br>
-        → [{{ new_key_col0|join(', ', attribute='hex') }}]</li>
+        → [{{ new_key_col0 | map('hex') | join(', ') }}]</li>
         {% for col in range(1, 4) %}
-        <li>w{% raw %}{{ col+4 }}{% endraw %} = w{{ col }} ⊕ w{% raw %}{{ col+3 }}{% endraw %}<br>
-        → [{{ new_key_cols[col]|join(', ', attribute='hex') }}]</li>
+        {% set col_plus_4 = col + 4 %}
+        {% set col_plus_3 = col + 3 %}
+        <li>w{{ col_plus_4 }} = w{{ col }} ⊕ w{{ col_plus_3 }}<br>
+        → [{{ new_key_cols[col] | map('hex') | join(', ') }}]</li>
         {% endfor %}
     </ol>
 

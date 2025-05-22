@@ -1,151 +1,12 @@
 from awsgi import response
 from flask import Flask, request, render_template
 import binascii
+from aes_lib import (
+    Sbox, pad, bytes_to_matrix, matrix_to_bytes, sub_bytes, shift_rows, mix_columns,
+    add_round_key, rotate_word, expand_key, matrix_to_html, matrices_to_process_html
+)
 
 app = Flask(__name__)
-
-Sbox = [
-    0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5,
-    0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
-    0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0,
-    0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
-    0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc,
-    0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
-    0x04, 0xc7, 0x23, 0xc3, 0x18, 0x96, 0x05, 0x9a,
-    0x07, 0x12, 0x80, 0xe2, 0xeb, 0x27, 0xb2, 0x75,
-    0x09, 0x83, 0x2c, 0x1a, 0x1b, 0x6e, 0x5a, 0xa0,
-    0x52, 0x3b, 0xd6, 0xb3, 0x29, 0xe3, 0x2f, 0x84,
-    0x53, 0xd1, 0x00, 0xed, 0x20, 0xfc, 0xb1, 0x5b,
-    0x6a, 0xcb, 0xbe, 0x39, 0x4a, 0x4c, 0x58, 0xcf,
-    0xd0, 0xef, 0xaa, 0xfb, 0x43, 0x4d, 0x33, 0x85,
-    0x45, 0xf9, 0x02, 0x7f, 0x50, 0x3c, 0x9f, 0xa8,
-    0x51, 0xa3, 0x40, 0x8f, 0x92, 0x9d, 0x38, 0xf5,
-    0xbc, 0xb6, 0xda, 0x21, 0x10, 0xff, 0xf3, 0xd2,
-    0xcd, 0x0c, 0x13, 0xec, 0x5f, 0x97, 0x44, 0x17,
-    0xc4, 0xa7, 0x7e, 0x3d, 0x64, 0x5d, 0x19, 0x73,
-    0x60, 0x81, 0x4f, 0xdc, 0x22, 0x2a, 0x90, 0x88,
-    0x46, 0xee, 0xb8, 0x14, 0xde, 0x5e, 0x0b, 0xdb,
-    0xe0, 0x32, 0x3a, 0x0a, 0x49, 0x06, 0x24, 0x5c,
-    0xc2, 0xd3, 0xac, 0x62, 0x91, 0x95, 0xe4, 0x79,
-    0xe7, 0xc8, 0x37, 0x6d, 0x8d, 0xd5, 0x4e, 0xa9,
-    0x6c, 0x56, 0xf4, 0xea, 0x65, 0x7a, 0xae, 0x08,
-    0xba, 0x78, 0x25, 0x2e, 0x1c, 0xa6, 0xb4, 0xc6,
-    0xe8, 0xdd, 0x74, 0x1f, 0x4b, 0xbd, 0x8b, 0x8a,
-    0x70, 0x3e, 0xb5, 0x66, 0x48, 0x03, 0xf6, 0x0e,
-    0x61, 0x35, 0x57, 0xb9, 0x86, 0xc1, 0x1d, 0x9e,
-    0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94,
-    0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
-    0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68,
-    0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
-]
-
-Rcon = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36]  # Round constants
-
-
-# Helper functions
-def pad(data):
-    length = 16 - (len(data) % 16)
-    return data + bytes([length]) * length
-
-
-def bytes_to_matrix(text):
-    return [[text[j * 4 + i] for j in range(4)] for i in range(4)]
-
-
-def matrix_to_bytes(matrix):
-    return bytes(sum(matrix, []))
-
-
-def sub_bytes(state, log):
-    return [[Sbox[b] for b in row] for row in state]
-
-
-def shift_rows(state, log):
-    shifted = [
-        state[0],
-        state[1][1:] + state[1][:1],
-        state[2][2:] + state[2][:2],
-        state[3][3:] + state[3][:3]
-    ]
-    log.append(("ShiftRows Transformation", shifted))
-    return shifted
-
-
-def mix_columns(state, log):
-    mix_matrix = [
-        [2, 3, 1, 1],
-        [1, 2, 3, 1],
-        [1, 1, 2, 3],
-        [3, 1, 1, 2]
-    ]
-
-    def galois_mult(a, b):
-        p = 0
-        for _ in range(8):
-            if b & 1:
-                p ^= a
-            carry = a & 0x80
-            a <<= 1
-            if carry:
-                a ^= 0x1B
-            a &= 0xFF
-            b >>= 1
-        return p
-
-    new_state = [[0] * 4 for _ in range(4)]
-    for col in range(4):
-        for row in range(4):
-            new_state[row][col] = (
-                galois_mult(state[0][col], mix_matrix[row][0]) ^
-                galois_mult(state[1][col], mix_matrix[row][1]) ^
-                galois_mult(state[2][col], mix_matrix[row][2]) ^
-                galois_mult(state[3][col], mix_matrix[row][3])
-            )
-            log.append((
-                f"Column {col}, Row {row}",
-                f"Result: 0x{new_state[row][col]:02X}"
-            ))
-    return new_state
-
-
-def add_round_key(state, round_key, log):
-    return [[state[i][j] ^ round_key[i][j] for j in range(4)] for i in range(4)]
-
-
-def rotate_word(word):
-    return word[1:] + word[:1]
-
-
-def generate_round_key(cipher_key, round_index, log):
-    words = [[cipher_key[j * 4 + i] for j in range(4)] for i in range(4)]
-    temp = rotate_word(words[-1])
-    log.append(("Rotate Word", temp))
-    temp = [Sbox[b] for b in temp]
-    temp[0] ^= Rcon[round_index - 1]
-    round_key = [temp]
-    for i in range(1, 4):
-        round_key.append([round_key[i - 1][j] ^ words[i][j] for j in range(4)])
-    return round_key
-
-
-def matrix_to_html(matrix):
-    html = "<table border='1'>"
-    for row in matrix:
-        html += "<tr>"
-        for cell in row:
-            html += f"<td>{hex(cell)}</td>"
-        html += "</tr>"
-    html += "</table>"
-    return html
-
-
-def matrices_to_process_html(original, transformed, transformation_name):
-    html = "<div>"
-    html += "<h4>Before</h4>" + matrix_to_html(original)
-    html += f"<h4>{transformation_name}</h4> → "
-    html += "<h4>After</h4>" + matrix_to_html(transformed)
-    html += "</div>"
-    return html
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -157,74 +18,304 @@ def index():
 
         if not key or not word:
             error = "Key and word cannot be empty"
-        elif len(key) > 32 or len(word) > 32:
-            error = "Key or word exceeds maximum length (32 bytes)"
+        elif len(key) != 16 or len(word) != 16:
+            error = "Key and word must be exactly 16 characters (16 bytes)"
 
         if error:
             return render_template('landing.html', error=error)
 
-        key = pad(key.encode('utf-8'))[:16]
-        word = pad(word.encode('utf-8'))[:16]
+        key = key.encode('utf-8')
+        word = word.encode('utf-8')
 
         steps = []
+        explanation_rows = []
 
-        # Step 1: Convert word to matrix
+        # Step 1: Convert Plaintext to 4×4 Hex Matrix
         state = bytes_to_matrix(word)
+        explanation_rows = []
+        for i in range(4):
+            for j in range(4):
+                explanation_rows.append((
+                    f"Character '{chr(word[i+4*j])}' to Hex",
+                    f"0x{word[i+4*j]:02X}"
+                ))
         steps.append({
-            'title': 'Step 1: Word to Matrix',
+            'title': 'Step 1: Convert Plaintext to 4×4 Hex Matrix',
             'matrix_html': matrix_to_html(state),
-            'description': 'Converting the input plaintext to a matrix.'
+            'description': 'Transform each ASCII character of the input word into hex and populate a 4×4 matrix column-wise.',
+            'explanation_rows': explanation_rows,
+            'id_suffix': 'step1_explanation'
         })
 
-        # Step 2: Convert key to matrix
+        # Step 2: Convert Key to 4×4 Hex Matrix
         key_matrix = bytes_to_matrix(key)
+        explanation_rows = []
+        for i in range(4):
+            for j in range(4):
+                explanation_rows.append((
+                    f"Character '{chr(key[i+4*j])}' to Hex",
+                    f"0x{key[i+4*j]:02X}"
+                ))
         steps.append({
-            'title': 'Step 2: Key to Matrix',
+            'title': 'Step 2: Convert Key to 4×4 Hex Matrix',
             'matrix_html': matrix_to_html(key_matrix),
-            'description': 'Converting the encryption key to a matrix.'
+            'description': 'Transform each ASCII character of the key into hex and populate a 4×4 matrix column-wise.',
+            'explanation_rows': explanation_rows,
+            'id_suffix': 'step2_explanation'
         })
 
-        # Step 3: Initial AddRoundKey
+        # Round 0 — Initial Round (Pre-Whitening)
+        # Step 3: AddRoundKey
+        explanation_rows = []
+        for i in range(4):
+            for j in range(4):
+                explanation_rows.append((
+                    f"State[{i}][{j}] ⊕ Key[{i}][{j}]",
+                    f"0x{state[i][j]:02X} ⊕ 0x{key_matrix[i][j]:02X} = 0x{state[i][j] ^ key_matrix[i][j]:02X}"
+                ))
+
         state = add_round_key(state, key_matrix, [])
         steps.append({
-            'title': 'Step 3: Initial AddRoundKey',
+            'title': 'Round 0 — Initial Round (Pre-Whitening): AddRoundKey',
             'matrix_html': matrix_to_html(state),
-            'description': 'XORing the plaintext matrix with the encryption key matrix.'
+            'description': 'XOR each byte of the plaintext matrix with the corresponding byte of the key matrix.',
+            'explanation_rows': explanation_rows,
+            'id_suffix': 'step3_explanation'
         })
 
-        # Step 4: SubBytes
+        # Generate all round keys in advance using the correct key expansion
+        key_expansion_logs = []
+        round_keys = expand_key(key, key_expansion_logs)
+
+        # Rounds 1 to 9 — Main AES Rounds
+        for round_idx in range(1, 10):
+            round_title = f"Round {round_idx}"
+
+            # SubBytes
+            explanation_rows = []
+            for i in range(4):
+                for j in range(4):
+                    explanation_rows.append((
+                        f"S-box[0x{state[i][j]:02X}]",
+                        f"0x{Sbox[state[i][j]]:02X}"
+                    ))
+
+            before_state = [row[:] for row in state]
+            state = sub_bytes(state, [])
+            steps.append({
+                'title': f"{round_title}: SubBytes",
+                'matrix_html': matrices_to_process_html(before_state, state, 'SubBytes Transformation'),
+                'description': 'Substitute each byte in the matrix using the AES S-box.',
+                'explanation_rows': explanation_rows,
+                'id_suffix': f'round{round_idx}_subbytes_explanation'
+            })
+
+            # ShiftRows
+            explanation_rows = []
+            explanation_rows.append(("Row 0", "Unchanged"))
+            explanation_rows.append(("Row 1", "Left-rotate by 1"))
+            explanation_rows.append(("Row 2", "Left-rotate by 2"))
+            explanation_rows.append(("Row 3", "Left-rotate by 3"))
+
+            before_state = [row[:] for row in state]
+            state = shift_rows(state, [])
+            steps.append({
+                'title': f"{round_title}: ShiftRows",
+                'matrix_html': matrices_to_process_html(before_state, state, 'ShiftRows Transformation'),
+                'description': 'Row 0: unchanged, Row 1: left-rotate by 1, Row 2: left-rotate by 2, Row 3: left-rotate by 3.',
+                'explanation_rows': explanation_rows,
+                'id_suffix': f'round{round_idx}_shiftrows_explanation'
+            })
+
+            # MixColumns
+            log = []
+            before_state = [row[:] for row in state]
+            state = mix_columns(state, log)
+
+            # Check for detailed MixColumns explanation
+            mix_columns_explanation_rows = []
+            detailed_html = None
+
+            # First, look for the detailed HTML explanation
+            for log_entry in log:
+                if log_entry[0] == "MixColumns Detailed":
+                    detailed_html = log_entry[1]
+                    break
+
+            # If we found a detailed explanation, use it as the only explanation row
+            if detailed_html:
+                mix_columns_explanation_rows = [("MixColumns Detailed", detailed_html)]
+            else:
+                # Otherwise, fall back to the original log entries
+                mix_columns_explanation_rows = log
+
+            steps.append({
+                'title': f"{round_title}: MixColumns",
+                'matrix_html': matrices_to_process_html(before_state, state, 'MixColumns Transformation'),
+                'description': 'This step enhances diffusion — every output byte depends on all 4 bytes of the column.',
+                'explanation_rows': mix_columns_explanation_rows,
+                'id_suffix': f'round{round_idx}_mixcolumns_explanation'
+            })
+
+            # Round Key Generation Explanation
+            key_gen_explanation_rows = []
+            detailed_html = None
+
+            # First, look for the detailed HTML explanation
+            for log_entry in key_expansion_logs:
+                if log_entry[0] == f"Round {round_idx} Key Generation Detailed":
+                    detailed_html = log_entry[1]
+                    break
+
+            # If we found a detailed explanation, use it as the only explanation row
+            if detailed_html:
+                key_gen_explanation_rows = [(f"Round {round_idx} Key Generation Detailed", detailed_html)]
+            else:
+                # Otherwise, fall back to the original log entries
+                for log_entry in key_expansion_logs:
+                    # Use exact match to avoid confusion between rounds (e.g., Round 1 vs Round 10)
+                    if (log_entry[0].startswith(f"Round {round_idx} ") or 
+                        log_entry[0].startswith(f"Generate first column of round key {round_idx}") and (len(log_entry[0]) == len(f"Generate first column of round key {round_idx}") or not log_entry[0][len(f"Generate first column of round key {round_idx}")].isdigit()) or 
+                        log_entry[0].startswith(f"Generate remaining columns of round key {round_idx}") and (len(log_entry[0]) == len(f"Generate remaining columns of round key {round_idx}") or not log_entry[0][len(f"Generate remaining columns of round key {round_idx}")].isdigit())):
+                        key_gen_explanation_rows.append(log_entry)
+
+            steps.append({
+                'title': f"{round_title}: Round Key Generation",
+                'matrix_html': matrix_to_html(round_keys[round_idx]),
+                'description': f'Generation of Round Key {round_idx} using the AES key schedule algorithm.',
+                'explanation_rows': key_gen_explanation_rows,
+                'id_suffix': f'round{round_idx}_key_generation_explanation'
+            })
+
+            # AddRoundKey
+            explanation_rows = []
+            for i in range(4):
+                for j in range(4):
+                    explanation_rows.append((
+                        f"State[{i}][{j}] ⊕ RoundKey{round_idx}[{i}][{j}]",
+                        f"0x{state[i][j]:02X} ⊕ 0x{round_keys[round_idx][i][j]:02X} = 0x{state[i][j] ^ round_keys[round_idx][i][j]:02X}"
+                    ))
+
+            before_state = [row[:] for row in state]
+            state = add_round_key(state, round_keys[round_idx], [])
+            steps.append({
+                'title': f"{round_title}: AddRoundKey",
+                'matrix_html': matrices_to_process_html(before_state, state, 'AddRoundKey Transformation'),
+                'description': 'XOR current state with round key.',
+                'explanation_rows': explanation_rows,
+                'id_suffix': f'round{round_idx}_addroundkey_explanation'
+            })
+
+        # Round 10 — Final Round
+        # SubBytes
+        explanation_rows = []
+        for i in range(4):
+            for j in range(4):
+                explanation_rows.append((
+                    f"S-box[0x{state[i][j]:02X}]",
+                    f"0x{Sbox[state[i][j]]:02X}"
+                ))
+
+        before_state = [row[:] for row in state]
         state = sub_bytes(state, [])
         steps.append({
-            'title': 'Step 4: SubBytes',
-            'matrix_html': matrix_to_html(state),
-            'description': 'Substituting bytes using the AES S-box.'
+            'title': "Round 10 (Final): SubBytes",
+            'matrix_html': matrices_to_process_html(before_state, state, 'SubBytes Transformation'),
+            'description': 'Substitute each byte in the matrix using the AES S-box.',
+            'explanation_rows': explanation_rows,
+            'id_suffix': 'round10_subbytes_explanation'
         })
 
-        # Step 5: ShiftRows
+        # ShiftRows
+        explanation_rows = []
+        explanation_rows.append(("Row 0", "Unchanged"))
+        explanation_rows.append(("Row 1", "Left-rotate by 1"))
+        explanation_rows.append(("Row 2", "Left-rotate by 2"))
+        explanation_rows.append(("Row 3", "Left-rotate by 3"))
+
+        before_state = [row[:] for row in state]
         state = shift_rows(state, [])
         steps.append({
-            'title': 'Step 5: ShiftRows',
-            'matrix_html': matrix_to_html(state),
-            'description': 'Shifting rows to introduce diffusion.'
+            'title': "Round 10 (Final): ShiftRows",
+            'matrix_html': matrices_to_process_html(before_state, state, 'ShiftRows Transformation'),
+            'description': 'Row 0: unchanged, Row 1: left-rotate by 1, Row 2: left-rotate by 2, Row 3: left-rotate by 3.',
+            'explanation_rows': explanation_rows,
+            'id_suffix': 'round10_shiftrows_explanation'
         })
 
-        # Step 6: MixColumns
-        log = []
-        before_mix_columns = [row[:] for row in state]
-        state = mix_columns(state, log)
+        # Round Key Generation Explanation (Final)
+        key_gen_explanation_rows = []
+        detailed_html = None
+
+        # First, look for the detailed HTML explanation
+        for log_entry in key_expansion_logs:
+            if log_entry[0] == "Round 10 Key Generation Detailed":
+                detailed_html = log_entry[1]
+                break
+
+        # If we found a detailed explanation, use it as the only explanation row
+        if detailed_html:
+            key_gen_explanation_rows = [("Round 10 Key Generation Detailed", detailed_html)]
+        else:
+            # Otherwise, fall back to the original log entries
+            for log_entry in key_expansion_logs:
+                # Use exact match to avoid confusion between rounds
+                if (log_entry[0].startswith("Round 10 ") or 
+                    log_entry[0].startswith("Generate first column of round key 10") and (len(log_entry[0]) == len("Generate first column of round key 10") or not log_entry[0][len("Generate first column of round key 10")].isdigit()) or 
+                    log_entry[0].startswith("Generate remaining columns of round key 10") and (len(log_entry[0]) == len("Generate remaining columns of round key 10") or not log_entry[0][len("Generate remaining columns of round key 10")].isdigit())):
+                    key_gen_explanation_rows.append(log_entry)
+
         steps.append({
-            'title': 'Step 6: MixColumns',
-            'matrix_html': matrices_to_process_html(before_mix_columns, state, 'MixColumns Transformation'),
-            'description': 'Mixing columns to ensure further diffusion of data.'
+            'title': "Round 10 (Final): Round Key Generation",
+            'matrix_html': matrix_to_html(round_keys[10]),
+            'description': 'Generation of the final Round Key (10) using the AES key schedule algorithm.',
+            'explanation_rows': key_gen_explanation_rows,
+            'id_suffix': 'round10_key_generation_explanation'
         })
 
-        # Step 7: Generate First Round Key
-        log = []
-        round_key = generate_round_key(key, 1, log)
+        # AddRoundKey (Final)
+        explanation_rows = []
+        for i in range(4):
+            for j in range(4):
+                explanation_rows.append((
+                    f"State[{i}][{j}] ⊕ RoundKey10[{i}][{j}]",
+                    f"0x{state[i][j]:02X} ⊕ 0x{round_keys[10][i][j]:02X} = 0x{state[i][j] ^ round_keys[10][i][j]:02X}"
+                ))
+
+        before_state = [row[:] for row in state]
+        state = add_round_key(state, round_keys[10], [])
         steps.append({
-            'title': 'Step 7: Generate Round Key',
-            'matrix_html': matrix_to_html(round_key),
-            'description': 'Generating the first round key by applying the AES key schedule.'
+            'title': "Round 10 (Final): AddRoundKey",
+            'matrix_html': matrices_to_process_html(before_state, state, 'AddRoundKey Transformation'),
+            'description': 'XOR current state with the final round key.',
+            'explanation_rows': explanation_rows,
+            'id_suffix': 'round10_addroundkey_explanation'
+        })
+
+        # Final Output
+        final_bytes = matrix_to_bytes(state)
+        final_hex = binascii.hexlify(final_bytes).decode('utf-8').upper()
+
+        explanation_rows = []
+        explanation_rows.append((
+            "Final Encrypted Output (Hex)",
+            f"<div style='font-size: 1.2em; font-weight: bold; margin: 15px 0;'>{final_hex}</div>"
+        ))
+        explanation_rows.append((
+            "Original Plaintext",
+            f"<div style='margin: 5px 0;'>{word.decode('utf-8')}</div>"
+        ))
+        explanation_rows.append((
+            "Encryption Key",
+            f"<div style='margin: 5px 0;'>{key.decode('utf-8')}</div>"
+        ))
+
+        steps.append({
+            'title': "Final Encrypted Result",
+            'matrix_html': None,
+            'description': 'The final AES-128 encrypted output in hexadecimal format.',
+            'explanation_rows': explanation_rows,
+            'id_suffix': 'final_result'
         })
 
         return render_template('visualize.html', steps=steps)

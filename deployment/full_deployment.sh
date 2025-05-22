@@ -10,6 +10,18 @@ AWS_REGION="eu-west-1"
 RUNTIME="python3.12"
 # ==================================
 
+# 0. Running tests
+echo "🧪 Running tests..."
+pytest tests/test_aes.py -q --no-header
+
+# Check if tests passed
+if [ $? -ne 0 ]; then
+    echo "❌ Tests failed! Aborting deployment."
+    exit 1
+else
+    echo "✅ All tests passed! Proceeding with deployment."
+fi
+
 # 1. Почистване
 echo "🧹 Cleaning old builds..."
 rm -rf layer deployment.zip layer.zip
@@ -18,6 +30,10 @@ rm -rf layer deployment.zip layer.zip
 echo "📦 Installing dependencies from requirements.txt into layer/python..."
 mkdir -p layer/python
 pip install -r requirements.txt -t layer/python
+
+# 2.1 Copy aes_lib.py to layer/python
+echo "📦 Copying aes_lib.py to layer/python..."
+cp aes_lib.py layer/python/
 
 # 3. Пакетиране на layer.zip
 echo "🗜️ Creating layer.zip..."
@@ -118,7 +134,7 @@ fi
 
 # 8. Пакетиране на приложението
 echo "🗜️ Creating deployment.zip..."
-zip -r deployment.zip app.py templates/ static/
+zip -r deployment.zip app.py aes_lib.py templates/ static/
 
 # 9. Ъпдейтване на кода на Lambda функцията
 echo "🚀 Updating Lambda function code..."

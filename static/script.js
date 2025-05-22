@@ -84,7 +84,39 @@ toggleButtons.forEach(button => {
         const target = document.getElementById(targetId);
         if (!target) return;
 
-        target.style.display = (target.style.display === 'none' ? 'block' : 'none');
+        const isExpanded = target.classList.contains('visible');
+
+        if (isExpanded) {
+            // Hide the content
+            target.classList.remove('visible');
+            // Use setTimeout to set display:none after the animation completes
+            setTimeout(() => {
+                target.style.display = 'none';
+            }, 300);
+        } else {
+            // Show the content
+            target.style.display = 'block';
+            // Use setTimeout to allow the browser to process the display change before adding the class
+            setTimeout(() => {
+                target.classList.add('visible');
+            }, 10);
+        }
+
+        // Update the toggle button icon and text
+        const toggleIcon = button.querySelector('.toggle-icon');
+        const toggleText = button.querySelector('.toggle-text');
+
+        if (isExpanded) {
+            // Collapsing
+            toggleIcon.textContent = '+';
+            toggleText.textContent = 'View Detailed Explanation';
+            toggleIcon.style.transform = 'rotate(0deg)';
+        } else {
+            // Expanding
+            toggleIcon.textContent = '−'; // Using minus sign
+            toggleText.textContent = 'Hide Detailed Explanation';
+            toggleIcon.style.transform = 'rotate(90deg)';
+        }
 
         button.classList.add('animate-click');
         setTimeout(() => button.classList.remove('animate-click'), 300);
@@ -116,6 +148,86 @@ if (scrollTopBtn) {
     scrollTopBtn.addEventListener('click', scrollToTop);
 }
 
+// Character counter functionality
+function setupCharacterCounters() {
+    const keyInput = document.getElementById('key');
+    const wordInput = document.getElementById('word');
+    const keyCounter = document.getElementById('keyCounter');
+    const wordCounter = document.getElementById('wordCounter');
+
+    if (keyInput && keyCounter) {
+        // Update initial count
+        keyCounter.textContent = keyInput.value.length;
+
+        // Add event listener for input changes
+        keyInput.addEventListener('input', function() {
+            keyCounter.textContent = this.value.length;
+
+            // Add visual feedback
+            if (this.value.length === 16) {
+                keyCounter.classList.add('complete');
+            } else {
+                keyCounter.classList.remove('complete');
+            }
+        });
+    }
+
+    if (wordInput && wordCounter) {
+        // Update initial count
+        wordCounter.textContent = wordInput.value.length;
+
+        // Add event listener for input changes
+        wordInput.addEventListener('input', function() {
+            wordCounter.textContent = this.value.length;
+
+            // Add visual feedback
+            if (this.value.length === 16) {
+                wordCounter.classList.add('complete');
+            } else {
+                wordCounter.classList.remove('complete');
+            }
+        });
+    }
+}
+
+// Handle toggle for Rounds 2-9
+function setupRounds2to9Toggle() {
+    const toggleBtn = document.getElementById('toggleRounds2to9Btn');
+    if (!toggleBtn) return;
+
+    const rounds2to9Steps = document.querySelectorAll('.rounds2to9-step');
+
+    toggleBtn.addEventListener('click', function() {
+        const isExpanded = toggleBtn.getAttribute('data-expanded') === 'true';
+
+        if (isExpanded) {
+            // Hide rounds 2-9
+            rounds2to9Steps.forEach(step => {
+                step.style.display = 'none';
+            });
+
+            // Update button
+            toggleBtn.querySelector('.toggle-icon').textContent = '+';
+            toggleBtn.querySelector('.toggle-text').textContent = 'Show Rounds 2-9';
+            toggleBtn.setAttribute('data-expanded', 'false');
+        } else {
+            // Show rounds 2-9
+            rounds2to9Steps.forEach(step => {
+                step.style.display = 'flex';
+                // Trigger animation
+                setTimeout(() => {
+                    step.style.animation = 'fadeInStep 1s forwards';
+                }, 10);
+            });
+
+            // Update button
+            toggleBtn.querySelector('.toggle-icon').textContent = '−';
+            toggleBtn.querySelector('.toggle-text').textContent = 'Hide Rounds 2-9';
+            toggleBtn.setAttribute('data-expanded', 'true');
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     // Load theme preference
     loadThemePreference();
@@ -126,8 +238,14 @@ document.addEventListener('DOMContentLoaded', function () {
         themeToggleBtn.addEventListener('click', toggleTheme);
     }
 
-    // Animate steps if they exist
-    const steps = document.querySelectorAll('.step');
+    // Setup character counters for input fields
+    setupCharacterCounters();
+
+    // Setup toggle for Rounds 2-9
+    setupRounds2to9Toggle();
+
+    // Animate steps if they exist (except rounds 2-9 which are hidden initially)
+    const steps = document.querySelectorAll('.step:not(.rounds2to9-step)');
     if (steps.length > 0) {
         steps.forEach((step, index) => {
             setTimeout(() => {

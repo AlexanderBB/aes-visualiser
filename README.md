@@ -24,7 +24,7 @@
 
 Може да видите работещо демо на приложението тук:
 
-👉 [Живо демо на AES Visualiser](https://j6qc5l4lwzmvi56wqyidebrpwm0ydnaw.lambda-url.eu-west-1.on.aws/)
+👉 [Живо демо на AES Visualiser](https://aes.visualise.click/)
 
 ## 1. Предварителни изисквания
 

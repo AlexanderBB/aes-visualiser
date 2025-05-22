@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
+  <button id="themeToggleBtn" class="theme-toggle" title="Toggle Dark/Light Mode">&#9790;</button>
   <div class="landing-container">
     <div class="landing-box">
       <h1>AES Step-by-Step Encryption</h1>
@@ -23,5 +24,6 @@
       </form>
     </div>
   </div>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

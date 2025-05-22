@@ -1,3 +1,39 @@
+/* CSS Variables for theming */
+:root {
+    /* Light mode (default) */
+    --bg-color: #f2f7fc;
+    --text-color: #333;
+    --heading-color: #3c4d7a;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0, 0, 0, 0.1);
+    --input-border: #cce0ff;
+    --button-bg: #66b3ff;
+    --button-hover: #3399ff;
+    --matrix-bg: #f9fbfd;
+    --table-border: #cce0ff;
+    --success-color: green;
+    --step-final-bg: #e6f0ff;
+    --description-color: #666;
+}
+
+/* Night mode colors */
+.night-mode {
+    --bg-color: #1a1a2e;
+    --text-color: #e1e1e1;
+    --heading-color: #66b3ff;
+    --card-bg: #252541;
+    --card-shadow: rgba(0, 0, 0, 0.3);
+    --input-border: #3d3d5c;
+    --button-bg: #4d7cff;
+    --button-hover: #3366cc;
+    --matrix-bg: #2a2a45;
+    --table-border: #3d3d5c;
+    --success-color: #4caf50;
+    --step-final-bg: #252550;
+    --description-color: #b0b0b0;
+    --icon-filter: invert(0.8); /* Adjust icons for dark mode */
+}
+
 /* General Reset */
 * {
     margin: 0;
@@ -8,10 +44,12 @@
 /* Body */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f2f7fc;
+    background: var(--bg-color);
+    color: var(--text-color);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Landing Page */
@@ -24,30 +62,35 @@ body {
 }
 
 .landing-box {
-    background: #ffffff;
+    background: var(--card-bg);
     padding: 40px 30px;
     border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 20px var(--card-shadow);
     text-align: center;
     width: 320px;
     animation: fadeIn 1s ease-in-out;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .landing-box h1 {
     margin-bottom: 20px;
-    color: #3c4d7a;
+    color: var(--heading-color);
+    transition: color 0.3s ease;
 }
 
 .landing-box input[type="text"] {
     width: 100%;
     margin: 10px 0;
     padding: 10px;
-    border: 1px solid #cce0ff;
+    border: 1px solid var(--input-border);
     border-radius: 8px;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
 }
 
 .landing-box input[type="submit"] {
-    background-color: #66b3ff;
+    background-color: var(--button-bg);
     color: white;
     border: none;
     padding: 12px;
@@ -60,7 +103,7 @@ body {
 }
 
 .landing-box input[type="submit"]:hover {
-    background-color: #3399ff;
+    background-color: var(--button-hover);
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
 }
@@ -69,32 +112,45 @@ body {
     transform: scale(0.97);
 }
 
+/* Error message styling */
+.error-message {
+    color: #ff5252;
+    margin-bottom: 15px;
+    font-size: 14px;
+    padding: 8px;
+    background-color: rgba(255, 82, 82, 0.1);
+    border-radius: 5px;
+}
+
 /* Steps Page */
 h1 {
     text-align: center;
     margin: 40px 0 20px;
-    color: #3c4d7a;
+    color: var(--heading-color);
+    transition: color 0.3s ease;
 }
 
 .step {
-    background: #ffffff;
+    background: var(--card-bg);
     margin: 30px auto;
     padding: 30px;
     border-radius: 15px;
     width: 90%;
     max-width: 1100px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 8px 20px var(--card-shadow);
     display: flex;
     flex-direction: row;
     gap: 30px;
     animation: fadeInStep 1s forwards;
     opacity: 0;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .step.final-step {
-    background: #e6f0ff;
+    background: var(--step-final-bg);
     text-align: center;
     flex-direction: column;
+    transition: background-color 0.3s ease;
 }
 
 .step-container {
@@ -106,9 +162,10 @@ h1 {
 
 .matrix {
     flex: 1;
-    background: #f9fbfd;
+    background: var(--matrix-bg);
     padding: 20px;
     border-radius: 12px;
+    transition: background-color 0.3s ease;
 }
 
 .matrix table {
@@ -118,13 +175,16 @@ h1 {
 }
 
 .matrix table, .matrix th, .matrix td {
-    border: 1px solid #cce0ff;
+    border: 1px solid var(--table-border);
+    transition: border-color 0.3s ease;
 }
 
 .matrix th, .matrix td {
     padding: 10px;
     text-align: center;
     border-radius: 8px;
+    color: var(--text-color);
+    transition: color 0.3s ease;
 }
 
 .text {
@@ -135,24 +195,25 @@ h1 {
 }
 
 .step-description {
-    color: #666;
+    color: var(--description-color);
     font-size: 16px;
     line-height: 1.5;
+    transition: color 0.3s ease;
 }
 
 .toggle-btn {
-    background: #66b3ff;
+    background: var(--button-bg);
     border: none;
     padding: 10px;
     border-radius: 8px;
     margin-top: 20px;
     color: white;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: background-color 0.3s ease;
 }
 
 .toggle-btn:hover {
-    background: #3399ff;
+    background: var(--button-hover);
 }
 
 .explanation-content {
@@ -183,11 +244,12 @@ h1 {
 .copy-content img {
     width: 24px;
     height: 24px;
+    filter: var(--icon-filter, none); /* For night mode icon adjustment */
 }
 
 .copied-text {
     margin-left: 8px;
-    color: green;
+    color: var(--success-color);
     opacity: 0;
     transition: opacity 0.3s;
 }
@@ -208,7 +270,7 @@ h1 {
 .btn-float {
     width: 55px;
     height: 55px;
-    background: #66b3ff;
+    background: var(--button-bg);
     color: white;
     border: none;
     border-radius: 50%;
@@ -220,7 +282,8 @@ h1 {
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 2px 10px var(--card-shadow);
 }
 
 a.btn-float {
@@ -228,11 +291,32 @@ a.btn-float {
 }
 
 .btn-float:hover {
-    background: #3399ff;
+    background: var(--button-hover);
 }
 
 .plus-icon {
     font-size: 24px;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    background: var(--button-bg);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 2px 10px var(--card-shadow);
+    z-index: 1000;
 }
 
 @keyframes fadeIn {

@@ -114,17 +114,18 @@ if aws lambda get-function --function-name "$LAMBDA_FUNCTION_NAME" --region "$AW
     aws lambda update-function-configuration \
       --function-name "$LAMBDA_FUNCTION_NAME" \
       --layers "$LAYER_VERSION_ARN" \
+      --handler "lambda_handler.handler" \
       --region "$AWS_REGION" \
       --no-cli-pager
     sleep 5
 else
     echo "✨ Function does not exist. Creating a new function..."
-    zip -r deployment.zip app.py templates/ static/
+    zip -r deployment.zip app.py lambda_handler.py templates/ static/
     aws lambda create-function \
       --function-name "$LAMBDA_FUNCTION_NAME" \
       --runtime "$RUNTIME" \
       --role "$ROLE_ARN" \
-      --handler "app.handler" \
+      --handler "lambda_handler.handler" \
       --layers "$LAYER_VERSION_ARN" \
       --zip-file fileb://deployment.zip \
       --region "$AWS_REGION" \
@@ -134,7 +135,8 @@ fi
 
 # 8. Пакетиране на приложението
 echo "🗜️ Creating deployment.zip..."
-zip -r deployment.zip app.py aes_lib.py templates/ static/
+echo "📦 Including optimized static files for production..."
+zip -r deployment.zip app.py lambda_handler.py aes_lib.py templates/ static/
 
 # 9. Ъпдейтване на кода на Lambda функцията
 echo "🚀 Updating Lambda function code..."

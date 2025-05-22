@@ -1,0 +1,119 @@
+<div class="key-expansion-explanation">
+    <h4>🧾 Input Matrix (Before MixColumns)</h4>
+    <div class="key-matrix">
+        <table>
+            <tr>
+                <th>Column 0</th><th>Column 1</th><th>Column 2</th><th>Column 3</th>
+            </tr>
+            <tr>
+                <td>{{ state[0][0]|hex }}</td>
+                <td>{{ state[0][1]|hex }}</td>
+                <td>{{ state[0][2]|hex }}</td>
+                <td>{{ state[0][3]|hex }}</td>
+            </tr>
+            <tr>
+                <td>{{ state[1][0]|hex }}</td>
+                <td>{{ state[1][1]|hex }}</td>
+                <td>{{ state[1][2]|hex }}</td>
+                <td>{{ state[1][3]|hex }}</td>
+            </tr>
+            <tr>
+                <td>{{ state[2][0]|hex }}</td>
+                <td>{{ state[2][1]|hex }}</td>
+                <td>{{ state[2][2]|hex }}</td>
+                <td>{{ state[2][3]|hex }}</td>
+            </tr>
+            <tr>
+                <td>{{ state[3][0]|hex }}</td>
+                <td>{{ state[3][1]|hex }}</td>
+                <td>{{ state[3][2]|hex }}</td>
+                <td>{{ state[3][3]|hex }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <h4>🧮 Diffusion Matrix</h4>
+    <p>Each column [b0, b1, b2, b3]ᵗ is multiplied with:</p>
+    <div class="key-matrix">
+        <table>
+            <tr>
+                <td>02</td><td>03</td><td>01</td><td>01</td>
+            </tr>
+            <tr>
+                <td>01</td><td>02</td><td>03</td><td>01</td>
+            </tr>
+            <tr>
+                <td>01</td><td>01</td><td>02</td><td>03</td>
+            </tr>
+            <tr>
+                <td>03</td><td>01</td><td>01</td><td>02</td>
+            </tr>
+        </table>
+    </div>
+
+    <p>To produce:</p>
+    <ol>
+        <li>r0 = [02·b0 ⊕ 03·b1 ⊕ b2 ⊕ b3]</li>
+        <li>r1 = [b0 ⊕ 02·b1 ⊕ 03·b2 ⊕ b3]</li>
+        <li>r2 = [b0 ⊕ b1 ⊕ 02·b2 ⊕ 03·b3]</li>
+        <li>r3 = [03·b0 ⊕ b1 ⊕ b2 ⊕ 02·b3]</li>
+    </ol>
+
+    <p>Where:</p>
+    <ul>
+        <li>b0–b3 = input column bytes (top to bottom)</li>
+        <li>r0–r3 = transformed output bytes</li>
+    </ul>
+
+    <h4>🔍 Column 0 Transformation</h4>
+    <p>Input:</p>
+    <ul>
+        <li>b0 = {{ state[0][0]|hex }}</li>
+        <li>b1 = {{ state[1][0]|hex }}</li>
+        <li>b2 = {{ state[2][0]|hex }}</li>
+        <li>b3 = {{ state[3][0]|hex }}</li>
+    </ul>
+
+    <p>Output:</p>
+    <ul>
+        <li>r0 = 02·{{ state[0][0]|hex }} ⊕ 03·{{ state[1][0]|hex }} ⊕ 01·{{ state[2][0]|hex }} ⊕ 01·{{ state[3][0]|hex }} = {{ col0_results[0]|hex }}</li>
+        <li>r1 = 01·{{ state[0][0]|hex }} ⊕ 02·{{ state[1][0]|hex }} ⊕ 03·{{ state[2][0]|hex }} ⊕ 01·{{ state[3][0]|hex }} = {{ col0_results[1]|hex }}</li>
+        <li>r2 = 01·{{ state[0][0]|hex }} ⊕ 01·{{ state[1][0]|hex }} ⊕ 02·{{ state[2][0]|hex }} ⊕ 03·{{ state[3][0]|hex }} = {{ col0_results[2]|hex }}</li>
+        <li>r3 = 03·{{ state[0][0]|hex }} ⊕ 01·{{ state[1][0]|hex }} ⊕ 01·{{ state[2][0]|hex }} ⊕ 02·{{ state[3][0]|hex }} = {{ col0_results[3]|hex }}</li>
+    </ul>
+
+    <h4>✅ Output Matrix (After MixColumns)</h4>
+    <div class="key-matrix">
+        <table>
+            <tr>
+                <th>Column 0</th><th>Column 1</th><th>Column 2</th><th>Column 3</th>
+            </tr>
+            <tr>
+                <td>{{ new_state[0][0]|hex }}</td>
+                <td>{{ new_state[0][1]|hex }}</td>
+                <td>{{ new_state[0][2]|hex }}</td>
+                <td>{{ new_state[0][3]|hex }}</td>
+            </tr>
+            <tr>
+                <td>{{ new_state[1][0]|hex }}</td>
+                <td>{{ new_state[1][1]|hex }}</td>
+                <td>{{ new_state[1][2]|hex }}</td>
+                <td>{{ new_state[1][3]|hex }}</td>
+            </tr>
+            <tr>
+                <td>{{ new_state[2][0]|hex }}</td>
+                <td>{{ new_state[2][1]|hex }}</td>
+                <td>{{ new_state[2][2]|hex }}</td>
+                <td>{{ new_state[2][3]|hex }}</td>
+            </tr>
+            <tr>
+                <td>{{ new_state[3][0]|hex }}</td>
+                <td>{{ new_state[3][1]|hex }}</td>
+                <td>{{ new_state[3][2]|hex }}</td>
+                <td>{{ new_state[3][3]|hex }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <p>💡 Purpose: Every output byte becomes a mix of all 4 input bytes → ensuring strong byte diffusion across each column.</p>
+</div>

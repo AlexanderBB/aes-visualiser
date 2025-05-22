@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AES-128 Web Visualizer</title>
+    <!-- Production CSS (minified) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.min.css') }}">
+</head>
+<body>
+  <button id="themeToggleBtn" class="theme-toggle" title="Toggle Dark/Light Mode">&#9790;</button>
+  <div class="landing-container">
+    <div class="landing-box">
+      <h1>AES-128 Web Visualizer</h1>
+      <p class="description">Visualize all steps of AES-128 encryption algorithm</p>
+
+      {% if error %}
+          <div class="error-message">{{ error }}</div>
+      {% endif %}
+
+      <form method="POST">
+          <div class="form-group">
+              <label for="key">Encryption Key (16 characters):</label>
+              <input type="text" id="key" name="key" placeholder="Enter 16-character key" maxlength="16" required>
+              <div class="char-counter"><span id="keyCounter">0</span>/16 characters</div>
+          </div>
+          <div class="form-group">
+              <label for="word">Plaintext (16 characters):</label>
+              <input type="text" id="word" name="word" placeholder="Enter 16-character text" maxlength="16" required>
+              <div class="char-counter"><span id="wordCounter">0</span>/16 characters</div>
+          </div>
+          <input type="submit" value="Visualize Encryption">
+      </form>
+
+      <div class="info-box">
+        <h3>About AES-128</h3>
+        <p>AES (Advanced Encryption Standard) is a symmetric block cipher used worldwide for secure data encryption.</p>
+        <p>This visualizer shows all steps of the encryption process including:</p>
+        <ul>
+          <li>Initial round (AddRoundKey)</li>
+          <li>Main rounds (SubBytes, ShiftRows, MixColumns, AddRoundKey)</li>
+          <li>Final round (SubBytes, ShiftRows, AddRoundKey)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <!-- Production JavaScript (minified) -->
+  <script src="{{ url_for('static', filename='js/script.min.js') }}"></script>
+</body>
+</html>

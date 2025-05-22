@@ -2,6 +2,7 @@
 # Contains shared functions for AES encryption used by both app.py and tests
 
 import binascii
+from flask import render_template, current_app
 
 # AES S-box
 Sbox = [
@@ -123,87 +124,6 @@ def mix_columns(state, log=None):
 
     # Create a detailed visual explanation for MixColumns
     if log is not None:
-        # Create a header for the MixColumns explanation
-        mix_columns_html = f"""
-        <div class="key-expansion-explanation">
-            <h4>🧾 Input Matrix (Before MixColumns)</h4>
-            <div class="key-matrix">
-                <table>
-                    <tr>
-                        <th>Column 0</th><th>Column 1</th><th>Column 2</th><th>Column 3</th>
-                    </tr>
-                    <tr>
-                        <td>{hex(state[0][0])}</td>
-                        <td>{hex(state[0][1])}</td>
-                        <td>{hex(state[0][2])}</td>
-                        <td>{hex(state[0][3])}</td>
-                    </tr>
-                    <tr>
-                        <td>{hex(state[1][0])}</td>
-                        <td>{hex(state[1][1])}</td>
-                        <td>{hex(state[1][2])}</td>
-                        <td>{hex(state[1][3])}</td>
-                    </tr>
-                    <tr>
-                        <td>{hex(state[2][0])}</td>
-                        <td>{hex(state[2][1])}</td>
-                        <td>{hex(state[2][2])}</td>
-                        <td>{hex(state[2][3])}</td>
-                    </tr>
-                    <tr>
-                        <td>{hex(state[3][0])}</td>
-                        <td>{hex(state[3][1])}</td>
-                        <td>{hex(state[3][2])}</td>
-                        <td>{hex(state[3][3])}</td>
-                    </tr>
-                </table>
-            </div>
-
-            <h4>🧮 Diffusion Matrix</h4>
-            <p>Each column [b0, b1, b2, b3]ᵗ is multiplied with:</p>
-            <div class="key-matrix">
-                <table>
-                    <tr>
-                        <td>02</td><td>03</td><td>01</td><td>01</td>
-                    </tr>
-                    <tr>
-                        <td>01</td><td>02</td><td>03</td><td>01</td>
-                    </tr>
-                    <tr>
-                        <td>01</td><td>01</td><td>02</td><td>03</td>
-                    </tr>
-                    <tr>
-                        <td>03</td><td>01</td><td>01</td><td>02</td>
-                    </tr>
-                </table>
-            </div>
-
-            <p>To produce:</p>
-            <ol>
-                <li>r0 = [02·b0 ⊕ 03·b1 ⊕ b2 ⊕ b3]</li>
-                <li>r1 = [b0 ⊕ 02·b1 ⊕ 03·b2 ⊕ b3]</li>
-                <li>r2 = [b0 ⊕ b1 ⊕ 02·b2 ⊕ 03·b3]</li>
-                <li>r3 = [03·b0 ⊕ b1 ⊕ b2 ⊕ 02·b3]</li>
-            </ol>
-
-            <p>Where:</p>
-            <ul>
-                <li>b0–b3 = input column bytes (top to bottom)</li>
-                <li>r0–r3 = transformed output bytes</li>
-            </ul>
-
-            <h4>🔍 Column 0 Transformation</h4>
-            <p>Input:</p>
-            <ul>
-                <li>b0 = {hex(state[0][0])}</li>
-                <li>b1 = {hex(state[1][0])}</li>
-                <li>b2 = {hex(state[2][0])}</li>
-                <li>b3 = {hex(state[3][0])}</li>
-            </ul>
-
-            <p>Output:</p>
-        """
-
         # Calculate the results for column 0
         col0_results = []
         for row in range(4):
@@ -214,16 +134,6 @@ def mix_columns(state, log=None):
                 galois_mult(state[3][0], mix_matrix[row][3])
             )
             col0_results.append(result)
-
-        # Add the column 0 transformation results
-        mix_columns_html += f"""
-            <ul>
-                <li>r0 = 02·{hex(state[0][0])} ⊕ 03·{hex(state[1][0])} ⊕ 01·{hex(state[2][0])} ⊕ 01·{hex(state[3][0])} = {hex(col0_results[0])}</li>
-                <li>r1 = 01·{hex(state[0][0])} ⊕ 02·{hex(state[1][0])} ⊕ 03·{hex(state[2][0])} ⊕ 01·{hex(state[3][0])} = {hex(col0_results[1])}</li>
-                <li>r2 = 01·{hex(state[0][0])} ⊕ 01·{hex(state[1][0])} ⊕ 02·{hex(state[2][0])} ⊕ 03·{hex(state[3][0])} = {hex(col0_results[2])}</li>
-                <li>r3 = 03·{hex(state[0][0])} ⊕ 01·{hex(state[1][0])} ⊕ 01·{hex(state[2][0])} ⊕ 02·{hex(state[3][0])} = {hex(col0_results[3])}</li>
-            </ul>
-        """
 
     # Calculate the new state
     for col in range(4):
@@ -242,43 +152,27 @@ def mix_columns(state, log=None):
 
     # Complete the detailed explanation with the output matrix
     if log is not None:
-        mix_columns_html += f"""
-            <h4>✅ Output Matrix (After MixColumns)</h4>
-            <div class="key-matrix">
-                <table>
-                    <tr>
-                        <th>Column 0</th><th>Column 1</th><th>Column 2</th><th>Column 3</th>
-                    </tr>
-                    <tr>
-                        <td>{hex(new_state[0][0])}</td>
-                        <td>{hex(new_state[0][1])}</td>
-                        <td>{hex(new_state[0][2])}</td>
-                        <td>{hex(new_state[0][3])}</td>
-                    </tr>
-                    <tr>
-                        <td>{hex(new_state[1][0])}</td>
-                        <td>{hex(new_state[1][1])}</td>
-                        <td>{hex(new_state[1][2])}</td>
-                        <td>{hex(new_state[1][3])}</td>
-                    </tr>
-                    <tr>
-                        <td>{hex(new_state[2][0])}</td>
-                        <td>{hex(new_state[2][1])}</td>
-                        <td>{hex(new_state[2][2])}</td>
-                        <td>{hex(new_state[2][3])}</td>
-                    </tr>
-                    <tr>
-                        <td>{hex(new_state[3][0])}</td>
-                        <td>{hex(new_state[3][1])}</td>
-                        <td>{hex(new_state[3][2])}</td>
-                        <td>{hex(new_state[3][3])}</td>
-                    </tr>
-                </table>
-            </div>
+        # Check if we're in a Flask application context
+        try:
+            # Try to access current_app to see if we're in a Flask context
+            app = current_app._get_current_object()
 
-            <p>💡 Purpose: Every output byte becomes a mix of all 4 input bytes → ensuring strong byte diffusion across each column.</p>
-        </div>
-        """
+            # If we are, use the template
+            mix_columns_html = render_template(
+                'partials/mix_columns.html',
+                state=state,
+                new_state=new_state,
+                col0_results=col0_results
+            )
+        except RuntimeError:
+            # If we're not in a Flask context (e.g., during testing),
+            # generate a simple HTML string instead
+            mix_columns_html = f"""
+            <div class="key-expansion-explanation">
+                <h4>MixColumns Transformation</h4>
+                <p>This is a simplified explanation for non-Flask contexts.</p>
+            </div>
+            """
 
         # Add the detailed HTML explanation as a single log entry
         log.append(("MixColumns Detailed", mix_columns_html))
@@ -311,71 +205,16 @@ def expand_key(key, log=None):
     for i in range(10):
         # Create a detailed visual explanation for this round key generation
         if log is not None:
-            # Create a header for the round key generation
-            key_html = f"""
-            <div class="key-expansion-explanation">
-                <h4>🔑 Input: Cipher Key</h4>
-                <div class="key-matrix">
-                    <table>
-                        <tr>
-                            <th>w0</th><th>w1</th><th>w2</th><th>w3</th>
-                        </tr>
-                        <tr>
-                            <td>{hex(round_keys[i][0][0])}</td>
-                            <td>{hex(round_keys[i][0][1])}</td>
-                            <td>{hex(round_keys[i][0][2])}</td>
-                            <td>{hex(round_keys[i][0][3])}</td>
-                        </tr>
-                        <tr>
-                            <td>{hex(round_keys[i][1][0])}</td>
-                            <td>{hex(round_keys[i][1][1])}</td>
-                            <td>{hex(round_keys[i][1][2])}</td>
-                            <td>{hex(round_keys[i][1][3])}</td>
-                        </tr>
-                        <tr>
-                            <td>{hex(round_keys[i][2][0])}</td>
-                            <td>{hex(round_keys[i][2][1])}</td>
-                            <td>{hex(round_keys[i][2][2])}</td>
-                            <td>{hex(round_keys[i][2][3])}</td>
-                        </tr>
-                        <tr>
-                            <td>{hex(round_keys[i][3][0])}</td>
-                            <td>{hex(round_keys[i][3][1])}</td>
-                            <td>{hex(round_keys[i][3][2])}</td>
-                            <td>{hex(round_keys[i][3][3])}</td>
-                        </tr>
-                    </table>
-                </div>
-
-                <h4>🧠 How Round Key {i+1} Is Generated</h4>
-                <ol>
-                    <li>Take last column (w3)<br>
-                    → [{', '.join(f'{hex(round_keys[i][j][3])}' for j in range(4))}]</li>
-            """
-
             # Take the last column of the previous round key
             last_col = [round_keys[i][j][3] for j in range(4)]
             log.append((f"Round {i+1} Key Generation", f"Creating round key for round {i+1}"))
 
             # Rotate, substitute, and XOR with round constant
             rotated = rotate_word(last_col)
-            key_html += f"""
-                    <li>RotWord<br>
-                    → [{', '.join(f'{hex(b)}' for b in rotated)}]</li>
-            """
-
             substituted = [Sbox[b] for b in rotated]
-            key_html += f"""
-                    <li>SubBytes (S-box)<br>
-                    → [{', '.join(f'{hex(b)}' for b in substituted)}]</li>
-            """
 
             original_first_byte = substituted[0]
             substituted[0] ^= Rcon[i]
-            key_html += f"""
-                    <li>XOR with Rcon [{hex(Rcon[i])}, 0x00, 0x00, 0x00]<br>
-                    → [{', '.join(f'{hex(b)}' for b in substituted)}]</li>
-            """
 
             # Generate the first column of the new round key
             new_key = [[0 for _ in range(4)] for _ in range(4)]
@@ -383,59 +222,43 @@ def expand_key(key, log=None):
             for j in range(4):
                 new_key[j][0] = round_keys[i][j][0] ^ substituted[j]
 
-            key_html += f"""
-                    <li>w4 = w0 ⊕ result<br>
-                    → [{', '.join(f'{hex(new_key[j][0])}' for j in range(4))}]</li>
-            """
+            # Store the first column for the template
+            new_key_col0 = [new_key[j][0] for j in range(4)]
 
             # Generate the remaining columns
+            new_key_cols = {1: [], 2: [], 3: []}
             for col in range(1, 4):
                 for row in range(4):
                     new_key[row][col] = round_keys[i][row][col] ^ new_key[row][col-1]
+                new_key_cols[col] = [new_key[j][col] for j in range(4)]
 
-                key_html += f"""
-                    <li>w{col+4} = w{col} ⊕ w{col+3}<br>
-                    → [{', '.join(f'{hex(new_key[j][col])}' for j in range(4))}]</li>
-                """
+            # Check if we're in a Flask application context
+            try:
+                # Try to access current_app to see if we're in a Flask context
+                app = current_app._get_current_object()
 
-            key_html += f"""
-                </ol>
-
-                <h4>✅ Output: Round Key {i+1}</h4>
-                <div class="key-matrix">
-                    <table>
-                        <tr>
-                            <th>w4</th><th>w5</th><th>w6</th><th>w7</th>
-                        </tr>
-                        <tr>
-                            <td>{hex(new_key[0][0])}</td>
-                            <td>{hex(new_key[0][1])}</td>
-                            <td>{hex(new_key[0][2])}</td>
-                            <td>{hex(new_key[0][3])}</td>
-                        </tr>
-                        <tr>
-                            <td>{hex(new_key[1][0])}</td>
-                            <td>{hex(new_key[1][1])}</td>
-                            <td>{hex(new_key[1][2])}</td>
-                            <td>{hex(new_key[1][3])}</td>
-                        </tr>
-                        <tr>
-                            <td>{hex(new_key[2][0])}</td>
-                            <td>{hex(new_key[2][1])}</td>
-                            <td>{hex(new_key[2][2])}</td>
-                            <td>{hex(new_key[2][3])}</td>
-                        </tr>
-                        <tr>
-                            <td>{hex(new_key[3][0])}</td>
-                            <td>{hex(new_key[3][1])}</td>
-                            <td>{hex(new_key[3][2])}</td>
-                            <td>{hex(new_key[3][3])}</td>
-                        </tr>
-                    </table>
+                # If we are, use the template
+                key_html = render_template(
+                    'partials/key_expansion.html',
+                    prev_key=round_keys[i],
+                    round_num=i+1,
+                    last_col=last_col,
+                    rotated=rotated,
+                    substituted=substituted,
+                    rcon=Rcon[i],
+                    new_key_col0=new_key_col0,
+                    new_key_cols=new_key_cols,
+                    new_key=new_key
+                )
+            except RuntimeError:
+                # If we're not in a Flask context (e.g., during testing),
+                # generate a simple HTML string instead
+                key_html = f"""
+                <div class="key-expansion-explanation">
+                    <h4>Round Key {i+1} Generation</h4>
+                    <p>This is a simplified explanation for non-Flask contexts.</p>
                 </div>
-                <p>Each round key is built by extending and transforming the previous key using a combination of rotation, substitution (S-box), and XOR logic.</p>
-            </div>
-            """
+                """
 
             # Add the detailed HTML explanation as a single log entry
             log.append((f"Round {i+1} Key Generation Detailed", key_html))

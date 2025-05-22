@@ -1,4 +1,3 @@
-from awsgi import response
 from flask import Flask, request, render_template
 import binascii
 from aes_lib import (
@@ -7,6 +6,14 @@ from aes_lib import (
 )
 
 app = Flask(__name__)
+
+# Add a custom filter for hex formatting
+@app.template_filter('hex')
+def hex_filter(value):
+    """Format a value as a hexadecimal string."""
+    if isinstance(value, int):
+        return f"0x{value:02X}"
+    return value
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -325,18 +332,3 @@ def index():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-def normalize_event(event):
-    """Normalize AWS Function URL event to API Gateway v1 style."""
-    if "httpMethod" not in event and "requestContext" in event and "http" in event["requestContext"]:
-        event["httpMethod"] = event["requestContext"]["http"]["method"]
-        event["path"] = event["rawPath"]
-        event["queryStringParameters"] = {}
-        event["headers"] = event.get("headers", {})
-    return event
-
-
-def handler(event, context):
-    event = normalize_event(event)
-    return response(app, event, context)

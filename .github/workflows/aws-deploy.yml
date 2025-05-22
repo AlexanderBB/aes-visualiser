@@ -1,0 +1,262 @@
+name: Deploy to AWS Lambda
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  LAMBDA_FUNCTION_NAME: aes-visualiser
+  LAYER_NAME: aes-visualiser-layer
+  ROLE_NAME: aes-visualiser-role
+  AWS_REGION: eu-west-1
+  RUNTIME: python3.12
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          pip install -r requirements.txt
+          
+      - name: Run tests
+        run: |
+          echo "🧪 Running tests..."
+          pytest tests/test_aes.py -q --no-header
+          
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Clean old builds
+        run: |
+          echo "🧹 Cleaning old builds..."
+          rm -rf layer deployment.zip layer.zip
+          
+      - name: Prepare Lambda layer
+        run: |
+          echo "📦 Installing dependencies from requirements.txt into layer/python..."
+          mkdir -p layer/python
+          pip install -r requirements.txt -t layer/python
+          
+          echo "📦 Copying aes_lib.py to layer/python..."
+          cp aes_lib.py layer/python/
+          
+          echo "🗜️ Creating layer.zip..."
+          cd layer
+          zip -r9 ../layer.zip .
+          cd ..
+          
+      - name: Check if Layer exists
+        id: check_layer
+        run: |
+          echo "🔎 Checking if existing layer version exists..."
+          EXISTING_LAYER_ARN=$(aws lambda list-layer-versions \
+            --layer-name "$LAYER_NAME" \
+            --region "$AWS_REGION" \
+            --query 'LayerVersions[0].LayerVersionArn' \
+            --output text 2>/dev/null || echo "")
+            
+          if [ "$EXISTING_LAYER_ARN" == "None" ] || [ -z "$EXISTING_LAYER_ARN" ]; then
+            echo "UPLOAD_NEW_LAYER=true" >> $GITHUB_ENV
+            echo "❌ No existing Layer. Will upload new layer..."
+          else
+            echo "UPLOAD_NEW_LAYER=false" >> $GITHUB_ENV
+            echo "LAYER_VERSION_ARN=$EXISTING_LAYER_ARN" >> $GITHUB_ENV
+            echo "✅ Existing Layer found: $EXISTING_LAYER_ARN"
+          fi
+          
+      - name: Upload Lambda Layer
+        if: env.UPLOAD_NEW_LAYER == 'true'
+        run: |
+          echo "🚀 Publishing new Lambda Layer version..."
+          LAYER_VERSION_ARN=$(aws lambda publish-layer-version \
+            --layer-name "$LAYER_NAME" \
+            --description "Layer for AES Visualiser App" \
+            --zip-file fileb://layer.zip \
+            --compatible-runtimes "$RUNTIME" \
+            --region "$AWS_REGION" \
+            --query 'LayerVersionArn' --output text)
+          echo "LAYER_VERSION_ARN=$LAYER_VERSION_ARN" >> $GITHUB_ENV
+          echo "✅ Using Layer ARN: $LAYER_VERSION_ARN"
+          
+      - name: Check IAM role
+        run: |
+          echo "🔎 Checking if IAM role exists..."
+          if aws iam get-role --role-name "$ROLE_NAME" > /dev/null 2>&1; then
+            echo "✅ IAM role exists."
+          else
+            echo "✨ IAM role not found. Creating a new role..."
+            TRUST_POLICY='{
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": "lambda.amazonaws.com"
+                  },
+                  "Action": "sts:AssumeRole"
+                }
+              ]
+            }'
+            aws iam create-role \
+              --role-name "$ROLE_NAME" \
+              --assume-role-policy-document "$TRUST_POLICY" > /dev/null
+
+            echo "🔗 Attaching AWSLambdaBasicExecutionRole policy..."
+            aws iam attach-role-policy \
+              --role-name "$ROLE_NAME" \
+              --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+            echo "⌛ Waiting 10 seconds for IAM role propagation..."
+            sleep 10
+          fi
+          
+          # Get role ARN
+          ROLE_ARN=$(aws iam get-role --role-name "$ROLE_NAME" --query 'Role.Arn' --output text)
+          echo "ROLE_ARN=$ROLE_ARN" >> $GITHUB_ENV
+          
+      - name: Check if Lambda function exists
+        id: check_function
+        run: |
+          echo "🔎 Checking if Lambda function exists..."
+          if aws lambda get-function --function-name "$LAMBDA_FUNCTION_NAME" --region "$AWS_REGION" > /dev/null 2>&1; then
+            echo "FUNCTION_EXISTS=true" >> $GITHUB_ENV
+            echo "🔄 Function exists. Will update configuration..."
+          else
+            echo "FUNCTION_EXISTS=false" >> $GITHUB_ENV
+            echo "✨ Function does not exist. Will create a new function..."
+          fi
+          
+      - name: Update Lambda function configuration
+        if: env.FUNCTION_EXISTS == 'true'
+        run: |
+          echo "🔄 Updating function configuration..."
+          aws lambda update-function-configuration \
+            --function-name "$LAMBDA_FUNCTION_NAME" \
+            --layers "${{ env.LAYER_VERSION_ARN }}" \
+            --handler "lambda_handler.handler" \
+            --region "$AWS_REGION" \
+            --no-cli-pager
+          sleep 5
+          
+      - name: Create Lambda function
+        if: env.FUNCTION_EXISTS == 'false'
+        run: |
+          echo "✨ Creating new function..."
+          zip -r deployment.zip app.py lambda_handler.py templates/ static/
+          aws lambda create-function \
+            --function-name "$LAMBDA_FUNCTION_NAME" \
+            --runtime "$RUNTIME" \
+            --role "${{ env.ROLE_ARN }}" \
+            --handler "lambda_handler.handler" \
+            --layers "${{ env.LAYER_VERSION_ARN }}" \
+            --zip-file fileb://deployment.zip \
+            --region "$AWS_REGION" \
+            --no-cli-pager
+          sleep 5
+          
+      - name: Package application
+        run: |
+          echo "🗜️ Creating deployment.zip..."
+          echo "📦 Including optimized static files for production..."
+          zip -r deployment.zip app.py lambda_handler.py aes_lib.py templates/ static/
+          
+      - name: Update Lambda function code
+        run: |
+          echo "🚀 Updating Lambda function code..."
+          aws lambda update-function-code \
+            --function-name "$LAMBDA_FUNCTION_NAME" \
+            --zip-file fileb://deployment.zip \
+            --region "$AWS_REGION" \
+            --no-cli-pager
+            
+      - name: Check for Function URL
+        id: check_function_url
+        run: |
+          echo "🔎 Checking for Function URL..."
+          FUNCTION_URL=$(aws lambda get-function-url-config \
+            --function-name "$LAMBDA_FUNCTION_NAME" \
+            --region "$AWS_REGION" \
+            --query 'FunctionUrl' \
+            --output text 2>/dev/null || echo "")
+            
+          if [ -z "$FUNCTION_URL" ]; then
+            echo "FUNCTION_URL_EXISTS=false" >> $GITHUB_ENV
+            echo "🔗 Function URL not found. Will create one..."
+          else
+            echo "FUNCTION_URL_EXISTS=true" >> $GITHUB_ENV
+            echo "FUNCTION_URL=$FUNCTION_URL" >> $GITHUB_ENV
+            echo "✅ Function URL exists: $FUNCTION_URL"
+          fi
+          
+      - name: Create Function URL
+        if: env.FUNCTION_URL_EXISTS == 'false'
+        run: |
+          echo "🔗 Creating Function URL..."
+          FUNCTION_URL=$(aws lambda create-function-url-config \
+            --function-name "$LAMBDA_FUNCTION_NAME" \
+            --auth-type NONE \
+            --cors '{
+               "AllowOrigins": ["*"],
+               "AllowMethods": ["*"],
+               "AllowHeaders": ["*"]
+            }' \
+            --region "$AWS_REGION" \
+            --query 'FunctionUrl' \
+            --output text)
+          echo "FUNCTION_URL=$FUNCTION_URL" >> $GITHUB_ENV
+          
+      - name: Add public invoke permission
+        run: |
+          echo "🔒 Adding public invoke permission to the Function URL..."
+          aws lambda add-permission \
+            --function-name "$LAMBDA_FUNCTION_NAME" \
+            --action lambda:InvokeFunctionUrl \
+            --principal "*" \
+            --function-url-auth-type NONE \
+            --statement-id allow-public-invoke \
+            --region "$AWS_REGION" \
+            --no-cli-pager || true
+            
+      - name: Test deployment
+        run: |
+          echo ""
+          echo "🧪 Running test request to your Lambda Function URL..."
+          sleep 2
+          HTTP_RESPONSE=$(curl -s -o /tmp/curl_output.txt -w "%{http_code}" "${{ env.FUNCTION_URL }}")
+          
+          if [ "$HTTP_RESPONSE" -ge 200 ] && [ "$HTTP_RESPONSE" -lt 300 ]; then
+            echo "✅ Test Passed! Server responded with HTTP $HTTP_RESPONSE"
+            echo "📄 Response content:"
+            cat /tmp/curl_output.txt
+          else
+            echo "❌ Test Failed! Server responded with HTTP $HTTP_RESPONSE"
+            echo "📄 Response content:"
+            cat /tmp/curl_output.txt
+            exit 1
+          fi
+          
+      - name: Deployment summary
+        run: |
+          echo ""
+          echo "🎉 Full Deployment Complete!"
+          echo "🌐 Your Lambda Function URL:"
+          echo "${{ env.FUNCTION_URL }}"

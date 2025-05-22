@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AES-128 Visualization</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Production CSS (minified) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.min.css') }}">
 </head>
 <body>
     <button id="themeToggleBtn" class="theme-toggle" title="Toggle Dark/Light Mode">&#9790;</button>
@@ -35,10 +37,10 @@
             {% endif %}
                 {% if step.matrix_html %}
                     <div class="step-header">
-                        {% if 'Step' not in step.title %}
+                        <h3>{{ step.title }}</h3>
+                        {% if 'Round' in step.title %}
                             <div class="round-badge">{{ step.title.split(':')[0] }}</div>
                         {% endif %}
-                        <h3>{{ step.title.split(':')[1] }}</h3>
                     </div>
                     <div class="step-container">
                         <div class="matrix step-{{ loop.index }}">
@@ -125,6 +127,7 @@
         <a href="/" class="btn-float btn-new-values" title="Encrypt New Values"><span class="plus-icon" style="text-decoration: none;">+</span></a>
     </div>
 
-<script src="{{ url_for('static', filename='script.js') }}"></script>
+    <!-- Production JavaScript (minified) -->
+    <script src="{{ url_for('static', filename='js/script.min.js') }}"></script>
 </body>
 </html>

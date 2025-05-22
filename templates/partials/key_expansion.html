@@ -1,0 +1,88 @@
+<div class="key-expansion-explanation">
+    <h4>🔑 Input: Cipher Key</h4>
+    <div class="key-matrix">
+        <table>
+            <tr>
+                <th>w0</th><th>w1</th><th>w2</th><th>w3</th>
+            </tr>
+            <tr>
+                <td>{{ prev_key[0][0]|hex }}</td>
+                <td>{{ prev_key[0][1]|hex }}</td>
+                <td>{{ prev_key[0][2]|hex }}</td>
+                <td>{{ prev_key[0][3]|hex }}</td>
+            </tr>
+            <tr>
+                <td>{{ prev_key[1][0]|hex }}</td>
+                <td>{{ prev_key[1][1]|hex }}</td>
+                <td>{{ prev_key[1][2]|hex }}</td>
+                <td>{{ prev_key[1][3]|hex }}</td>
+            </tr>
+            <tr>
+                <td>{{ prev_key[2][0]|hex }}</td>
+                <td>{{ prev_key[2][1]|hex }}</td>
+                <td>{{ prev_key[2][2]|hex }}</td>
+                <td>{{ prev_key[2][3]|hex }}</td>
+            </tr>
+            <tr>
+                <td>{{ prev_key[3][0]|hex }}</td>
+                <td>{{ prev_key[3][1]|hex }}</td>
+                <td>{{ prev_key[3][2]|hex }}</td>
+                <td>{{ prev_key[3][3]|hex }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <h4>🧠 How Round Key {{ round_num }} Is Generated</h4>
+    <ol>
+        <li>Take last column (w3)<br>
+        → [{{ last_col | map('hex') | join(', ') }}]</li>
+        <li>RotWord<br>
+        → [{{ rotated | map('hex') | join(', ') }}]</li>
+        <li>SubBytes (S-box)<br>
+        → [{{ substituted | map('hex') | join(', ') }}]</li>
+        <li>XOR with Rcon [{{ rcon|hex }}, 0x00, 0x00, 0x00]<br>
+        → [{{ substituted | map('hex') | join(', ') }}]</li>
+        <li>w4 = w0 ⊕ result<br>
+        → [{{ new_key_col0 | map('hex') | join(', ') }}]</li>
+        {% for col in range(1, 4) %}
+        {% set col_plus_4 = col + 4 %}
+        {% set col_plus_3 = col + 3 %}
+        <li>w{{ col_plus_4 }} = w{{ col }} ⊕ w{{ col_plus_3 }}<br>
+        → [{{ new_key_cols[col] | map('hex') | join(', ') }}]</li>
+        {% endfor %}
+    </ol>
+
+    <h4>✅ Output: Round Key {{ round_num }}</h4>
+    <div class="key-matrix">
+        <table>
+            <tr>
+                <th>w4</th><th>w5</th><th>w6</th><th>w7</th>
+            </tr>
+            <tr>
+                <td>{{ new_key[0][0]|hex }}</td>
+                <td>{{ new_key[0][1]|hex }}</td>
+                <td>{{ new_key[0][2]|hex }}</td>
+                <td>{{ new_key[0][3]|hex }}</td>
+            </tr>
+            <tr>
+                <td>{{ new_key[1][0]|hex }}</td>
+                <td>{{ new_key[1][1]|hex }}</td>
+                <td>{{ new_key[1][2]|hex }}</td>
+                <td>{{ new_key[1][3]|hex }}</td>
+            </tr>
+            <tr>
+                <td>{{ new_key[2][0]|hex }}</td>
+                <td>{{ new_key[2][1]|hex }}</td>
+                <td>{{ new_key[2][2]|hex }}</td>
+                <td>{{ new_key[2][3]|hex }}</td>
+            </tr>
+            <tr>
+                <td>{{ new_key[3][0]|hex }}</td>
+                <td>{{ new_key[3][1]|hex }}</td>
+                <td>{{ new_key[3][2]|hex }}</td>
+                <td>{{ new_key[3][3]|hex }}</td>
+            </tr>
+        </table>
+    </div>
+    <p>Each round key is built by extending and transforming the previous key using a combination of rotation, substitution (S-box), and XOR logic.</p>
+</div>

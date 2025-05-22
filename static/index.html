@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AES-128 Web Visualizer</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Production CSS (minified) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.min.css') }}">
 </head>
 <body>
   <button id="themeToggleBtn" class="theme-toggle" title="Toggle Dark/Light Mode">&#9790;</button>
@@ -42,6 +44,7 @@
       </div>
     </div>
   </div>
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <!-- Production JavaScript (minified) -->
+  <script src="{{ url_for('static', filename='js/script.min.js') }}"></script>
 </body>
 </html>

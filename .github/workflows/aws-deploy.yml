@@ -1,10 +1,9 @@
-name: Deployment to AWS
+name: Deploy to AWS Lambda
 
 on:
-  pull_request:
-    types: [closed]
-    branches:
-      - main
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
 env:
   LAMBDA_FUNCTION_NAME: aes-visualiser
@@ -15,7 +14,6 @@ env:
 
 jobs:
   deploy:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -51,7 +49,7 @@ jobs:
         run: |
           echo "🧹 Cleaning old builds..."
           rm -rf layer deployment.zip layer.zip
-
+          
       - name: Prepare Lambda layer
         run: |
           echo "📦 Installing dependencies from requirements.txt into layer/python..."
@@ -256,34 +254,6 @@ jobs:
             exit 1
           fi
           
-      - name: Read version from VERSION file
-        id: read_version
-        run: |
-          VERSION=$(cat VERSION)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Tag release if VERSION changed
-        run: |
-          echo "🔖 Tagging release if VERSION changed..."
-          TAG="v${{ steps.read_version.outputs.version }}"
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists. Skipping."
-          else
-            git config --global user.email "github-actions[bot]@users.noreply.github.com"
-            git config --global user.name "github-actions[bot]"
-            git tag "$TAG"
-            git push origin "$TAG"
-            echo "Tagged and pushed $TAG"
-          fi
-
-      - name: Create GitHub release if new tag created
-        if: success()
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ steps.read_version.outputs.version }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Deployment summary
         run: |
           echo ""

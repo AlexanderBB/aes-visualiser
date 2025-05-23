@@ -2,6 +2,8 @@ name: Unit tests for AES Encryption with OpenSSL
 
 on:
   workflow_call:
+  workflow_dispatch:
+
 
 jobs:
   test:

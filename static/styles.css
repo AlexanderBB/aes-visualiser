@@ -201,6 +201,15 @@ body {
     transition: color 0.3s ease;
 }
 
+.info-box a {
+    text-decoration: none;
+    color: var(--text-color);
+}
+
+.info-box a:hover {
+    text-decoration: underline;
+}
+
 /* Error message styling */
 .error-message {
     color: #ff5252;
@@ -709,7 +718,8 @@ a.btn-float {
 }
 
 .plus-icon {
-    font-size: 24px;
+    font-size: 30px;
+    padding-bottom: 5px;
 }
 
 /* Theme toggle button */
@@ -734,53 +744,64 @@ a.btn-float {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes fadeInStep {
-    to { opacity: 1; }
+    to {
+        opacity: 1;
+    }
 }
 
-.footer {
-    position: fixed;
-    bottom: 16px;
-    left: 50%;
-    transform: translateX(-50%);
+.profile-expand-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.profile-info {
+    position: absolute;
+    right: 65px;
+    bottom: 0;
     background: linear-gradient(90deg, var(--button-bg) 0%, var(--button-hover) 100%);
     color: #fff;
     padding: 10px 28px;
     border-radius: 22px;
     box-shadow: 0 6px 24px var(--card-shadow);
     font-size: 15px;
-    z-index: 1000;
-    text-align: center;
-    max-width: 95%;
-    width: max-content;
-    max-height: 48px;
-    overflow: hidden;
     white-space: nowrap;
-    text-overflow: ellipsis;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(20px) scaleX(0.7);
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 1001;
     display: flex;
     align-items: center;
     gap: 10px;
-    letter-spacing: 0.02em;
 }
 
-.footer a {
+.profile-info.show {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0) scaleX(1);
+}
+
+.profile-info a {
     color: #fff;
     font-weight: 500;
     text-decoration: underline dotted;
     transition: color 0.3s;
 }
 
-.footer a:hover {
+.profile-info a:hover {
     color: #ffe082;
     text-decoration: underline;
-}
-
-.footer .footer-icon {
-    margin-right: 8px;
-    font-size: 18px;
-    vertical-align: middle;
 }

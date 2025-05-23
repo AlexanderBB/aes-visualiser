@@ -4,65 +4,66 @@
     <meta charset="UTF-8">
     <title>AES-128 Web Visualizer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon/apple-touch-icon.png') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon/favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180"
+          href="{{ url_for('static', filename='favicon/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32"
+          href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16"
+          href="{{ url_for('static', filename='favicon/favicon-16x16.png') }}">
     <link rel="manifest" href="{{ url_for('static', filename='favicon/site.webmanifest') }}">
 </head>
 <body>
-  <button id="themeToggleBtn" class="theme-toggle" title="Toggle Dark/Light Mode">&#9790;</button>
-  <div class="landing-container">
+<button id="themeToggleBtn" class="theme-toggle" title="Toggle Dark/Light Mode">&#9790;</button>
+<div class="landing-container">
     <div class="landing-box">
-      <h1>AES-128 Web Visualizer</h1>
-      <p class="description">Visualize all steps of AES-128 encryption algorithm</p>
+        <h1>AES-128 Web Visualizer</h1>
+        <p class="description">Visualize all steps of AES-128 encryption algorithm</p>
 
-      {% if error %}
-          <div class="error-message">{{ error }}</div>
-      {% endif %}
+        {% if error %}
+            <div class="error-message">{{ error }}</div>
+        {% endif %}
 
-      <form method="POST">
-          <div class="form-group">
-              <label for="key">Encryption Key (16 characters):</label>
-              <input type="text" id="key" name="key" placeholder="Enter 16-character key" maxlength="16" required>
-              <div class="char-counter"><span id="keyCounter">0</span>/16 characters</div>
-          </div>
-          <div class="form-group">
-              <label for="word">Plaintext (16 characters):</label>
-              <input type="text" id="word" name="word" placeholder="Enter 16-character text" maxlength="16" required>
-              <div class="char-counter"><span id="wordCounter">0</span>/16 characters</div>
-          </div>
-          <input type="submit" value="Visualize Encryption">
-      </form>
+        <form method="POST">
+            <div class="form-group">
+                <label for="key">Encryption Key (16 characters):</label>
+                <input type="text" id="key" name="key" placeholder="Enter 16-character key" maxlength="16" required>
+                <div class="char-counter"><span id="keyCounter">0</span>/16 characters</div>
+            </div>
+            <div class="form-group">
+                <label for="word">Plaintext (16 characters):</label>
+                <input type="text" id="word" name="word" placeholder="Enter 16-character text" maxlength="16" required>
+                <div class="char-counter"><span id="wordCounter">0</span>/16 characters</div>
+            </div>
+            <input type="submit" value="Visualize Encryption">
+        </form>
 
-      <div class="info-box">
-        <h3>About AES-128</h3>
-        <p>AES (Advanced Encryption Standard) is a symmetric block cipher used worldwide for secure data encryption.</p>
-        <p>This visualizer shows all steps of the encryption process including:</p>
-        <ul>
-          <li>Initial round (AddRoundKey)</li>
-          <li>Main rounds (SubBytes, ShiftRows, MixColumns, AddRoundKey)</li>
-          <li>Final round (SubBytes, ShiftRows, AddRoundKey)</li>
-        </ul>
-      </div>
+        <div class="info-box">
+            <h3>About AES-128</h3>
+            <p>AES (Advanced Encryption Standard) is a symmetric block cipher used worldwide for secure data
+                encryption.</p>
+            <p>This visualizer shows all steps of the encryption process including:</p>
+            <ul>
+                <li>Initial round (AddRoundKey)</li>
+                <li>Main rounds (SubBytes, ShiftRows, MixColumns, AddRoundKey)</li>
+                <li>Final round (SubBytes, ShiftRows, AddRoundKey)</li>
+            </ul>
+            <hr style="margin-block: 15px;">
+            <p style="text-align: center;">© {{ year }} <a href="https://github.com/AlexanderBB" target="_blank">Aleksandar
+                Boyadzhiev</a></p>
+        </div>
     </div>
-  </div>
-  <!-- Production JavaScript (minified) -->
-  <script src="{{ url_for('static', filename='js/script.min.js') }}"></script>
-  <!-- <script>
-    // Night mode auto-detection (prefers-color-scheme)
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.classList.add('night-mode');
-        const icon = document.getElementById('themeToggleBtn');
-        if (icon) {
-            icon.innerHTML = '&#9728;';
-        }
-    }
-  </script>-->
-<footer class="footer">
-    <span class="footer-icon">&#128274;</span>
-    &copy; {{ year }} <a href="https://github.com/AlexanderBB" target="_blank">Aleksandar Boyadzhiev</a>
-    &middot; Licensed under
-    <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache 2.0</a>
-</footer>
+</div>
+<!-- Production JavaScript (minified) -->
+<script src="{{ url_for('static', filename='js/script.min.js') }}"></script>
+<!-- <script>
+  // Night mode auto-detection (prefers-color-scheme)
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.body.classList.add('night-mode');
+      const icon = document.getElementById('themeToggleBtn');
+      if (icon) {
+          icon.innerHTML = '&#9728;';
+      }
+  }
+</script>-->
 </body>
 </html>

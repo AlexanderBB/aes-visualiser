@@ -743,23 +743,44 @@ a.btn-float {
 }
 
 .footer {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, var(--button-bg) 0%, var(--button-hover) 100%);
+    color: #fff;
+    padding: 10px 28px;
+    border-radius: 22px;
+    box-shadow: 0 6px 24px var(--card-shadow);
+    font-size: 15px;
+    z-index: 1000;
     text-align: center;
-    padding: 20px 0;
-    background-color: var(--card-bg);
-    color: var(--text-color);
-    font-size: 14px;
-    border-top: 1px solid var(--table-border);
-    transition: var(--transition-normal);
-    margin-top: auto;
+    max-width: 95%;
+    width: max-content;
+    max-height: 48px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: 0.02em;
 }
 
 .footer a {
-    color: var(--heading-color);
-    text-decoration: none;
-    transition: color 0.3s ease;
+    color: #fff;
+    font-weight: 500;
+    text-decoration: underline dotted;
+    transition: color 0.3s;
 }
 
 .footer a:hover {
-    color: var(--button-hover);
+    color: #ffe082;
     text-decoration: underline;
+}
+
+.footer .footer-icon {
+    margin-right: 8px;
+    font-size: 18px;
+    vertical-align: middle;
 }

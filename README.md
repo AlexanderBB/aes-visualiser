@@ -1,5 +1,8 @@
 # AES-128 Web Visualizer 🔒✨
 
+[![Deploy to AWS Lambda](https://github.com/AlexanderBB/aes-visualiser/actions/workflows/aws-deploy.yml/badge.svg?branch=main)](https://github.com/AlexanderBB/aes-visualiser/actions/workflows/aws-deploy.yml)
+
+
 An interactive web application that visualizes the complete AES-128 encryption process step by step. The application accepts a 16-byte plaintext and a 16-byte key, and shows all transformations and rounds of the AES algorithm with detailed explanations.
 
 Deployed as an AWS Lambda function with Function URL, built with Flask.

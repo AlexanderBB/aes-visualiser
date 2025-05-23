@@ -1,14 +1,18 @@
 # AES-128 Web Visualizer 🔒✨
 
-An interactive web application that visualizes the complete AES-128 encryption process step by step. The application accepts a 16-byte plaintext and a 16-byte key, and shows all transformations and rounds of the AES algorithm with detailed explanations.
+[![Deployment to AWS](https://github.com/AlexanderBB/aes-visualiser/actions/workflows/aws-deploy.yml/badge.svg?branch=main)](https://github.com/AlexanderBB/aes-visualiser/actions/workflows/aws-deploy.yml)
 
-Deployed as an AWS Lambda function with Function URL, built with Flask.
+An interactive web application that visualises the complete AES-128 encryption process step by step. The application
+accepts a 16-byte plaintext and a 16-byte key, and shows all transformations and rounds of the AES algorithm with
+detailed explanations.
+
+Deployed as an AWS Lambda function with a Function URL, built with Flask.
 
 ## 📋 Key Features
 
-- **Complete AES-128 Visualization**: Shows all steps from initial state to final encrypted output
+- **Complete AES-128 Visualisation**: Shows all steps from initial state to final encrypted output
 - **Detailed Step Explanations**: Each transformation is explained with before/after states
-- **Matrix Transformations**: Visualizes how plaintext and key are converted to matrices
+- **Matrix Transformations**: Visualises how plaintext and key are converted to matrices
 - **All AES Operations**: SubBytes, ShiftRows, MixColumns, AddRoundKey for all rounds
 - **Night Mode Support**: Toggle between light and dark themes for comfortable viewing
 - **Responsive Design**: Works on desktop and mobile devices
@@ -63,6 +67,7 @@ bash deployment/full_deployment.sh
 ```
 
 The script will:
+
 1. Run tests to ensure everything works correctly
 2. Create a Lambda Layer with all dependencies
 3. Create or update the Lambda function
@@ -78,7 +83,7 @@ After a few seconds, you'll get:
 🌐 Your Lambda Function URL:
 https://abcde12345.lambda-url.eu-west-1.on.aws/
 
-✅ Test Passed! Server responded with HTTP 200
+✅ Test Passed! The server responded with HTTP 200
 ```
 
 ### Option 2: GitHub Actions Deployment
@@ -136,8 +141,9 @@ aws iam get-role --role-name GitHubActionsAESVisualiser --query 'Role.Arn' --out
 
 1. In your GitHub repository, go to Settings > Secrets and variables > Actions
 2. Add a new repository secret:
-   - Name: `AWS_ROLE_TO_ASSUME`
-   - Value: The ARN of the IAM role you created (e.g., `arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/GitHubActionsAESVisualiser`)
+    - Name: `AWS_ROLE_TO_ASSUME`
+    - Value: The ARN of the IAM role you created (e.g.,
+      `arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/GitHubActionsAESVisualiser`)
 
 #### 3. Trigger the Deployment
 
@@ -150,6 +156,7 @@ The GitHub Actions workflow will automatically run when you push to the `main` b
 #### 4. Deployment Results
 
 After the workflow completes successfully:
+
 1. The Lambda function will be deployed or updated
 2. A Function URL will be created if it doesn't exist
 3. The workflow output will show the Function URL where your application is accessible
@@ -164,6 +171,7 @@ pytest tests/test_aes.py
 ```
 
 Tests cover:
+
 - Matrix transformation functions
 - Individual AES operations (SubBytes, ShiftRows, MixColumns, AddRoundKey)
 - Key expansion algorithm
@@ -174,12 +182,12 @@ Tests cover:
 
 ```
 aes-visualiser/
-├── app.py                # Main Flask application with routes and visualization logic
+├── app.py                # Main Flask application with routes and visualisation logic
 ├── aes_lib.py            # AES encryption implementation and utility functions
 ├── lambda_handler.py     # AWS Lambda handler functions
 ├── templates/            # HTML templates
 │   ├── landing.html      # Input form for plaintext and key
-│   ├── visualize.html    # Visualization of encryption steps
+│   ├── visualize.html    # Visualisation of encryption steps
 │   └── partials/         # Partial templates for reusable components
 │       ├── mix_columns.html    # Template for MixColumns explanation
 │       └── key_expansion.html  # Template for key expansion explanation
@@ -201,44 +209,44 @@ aes-visualiser/
 
 1. Open the application in your browser
 2. Enter a 16-character plaintext and a 16-character key
-3. Click "Visualize Encryption" to see the step-by-step process
+3. Click "Visualise Encryption" to see the step-by-step process
 4. Toggle between light and dark modes using the button in the top-right corner
 5. View details for each step by clicking the "View Details" button
-6. Copy the details to clipboard using the copy button
+6. Copy the details to the clipboard using the copy button
 
 ## 🔄 Recent Improvements
 
 The project has undergone several improvements to enhance code quality, maintainability, and testability:
 
 1. **Improved Code Organization**
-   - Separated AWS Lambda handler functions into a dedicated `lambda_handler.py` file
-   - Moved HTML generation code from Python to Jinja2 templates
-   - Created reusable template partials for complex visualizations
+    - Separated AWS Lambda handler functions into a dedicated `lambda_handler.py` file
+    - Moved HTML generation code from Python to Jinja2 templates
+    - Created reusable template partials for complex visualisations
 
 2. **Enhanced Testing**
-   - Improved test robustness with proper handling of missing dependencies
-   - Added predefined test values instead of relying on implementation
-   - Made OpenSSL comparison tests more resilient
+    - Improved test robustness with proper handling of missing dependencies
+    - Added predefined test values instead of relying on implementation
+    - Made OpenSSL comparison tests more resilient
 
 3. **Template Improvements**
-   - Added custom Jinja2 filter for hex formatting
-   - Created partial templates for MixColumns and key expansion explanations
-   - Improved separation of concerns between logic and presentation
+    - Added custom Jinja2 filter for hex formatting
+    - Created partial templates for MixColumns and key expansion explanations
+    - Improved separation of concerns between logic and presentation
 
 4. **Code Optimization**
-   - Removed duplicate code in various functions
-   - Improved parameter handling with proper None checks
-   - Enhanced code readability and maintainability
+    - Removed duplicate code in various functions
+    - Improved parameter handling with proper None checks
+    - Enhanced code readability and maintainability
 
 ## ⚡ Troubleshooting
 
-| Problem | Solution |
-|:--------|:---------|
-| Missing AWS credentials | Run `aws configure` |
-| `No module named flask` in Lambda | Check if the Layer was created correctly |
-| `AccessDeniedException` | Check if the IAM user has the necessary permissions |
-| Function URL returns nothing | Wait a few seconds after the first deployment |
-| Tests failing | Ensure you have pytest installed (`pip install pytest`) |
+| Problem                           | Solution                                                |
+|:----------------------------------|:--------------------------------------------------------|
+| Missing AWS credentials           | Run `aws configure`                                     |
+| `No module named flask` in Lambda | Check if the Layer was created correctly                |
+| `AccessDeniedException`           | Check if the IAM user has the necessary permissions     |
+| Function URL returns nothing      | Wait a few seconds after the first deployment           |
+| Tests failing                     | Ensure you have pytest installed (`pip install pytest`) |
 
 ## 👨‍💻 Author
 

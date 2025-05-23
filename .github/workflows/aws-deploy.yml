@@ -2,9 +2,12 @@ name: Deployment to AWS
 
 on:
   pull_request:
-    types: [closed]
     branches:
       - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 env:
   LAMBDA_FUNCTION_NAME: aes-visualiser
@@ -15,17 +18,17 @@ env:
 
 jobs:
   tests:
-    if: github.event.pull_request.merged == true
+    if: github.event_name == 'push'
     uses: ./.github/workflows/tests.yml
 
   release:
-    if: github.event.pull_request.merged == true
+    if: github.event_name == 'push'
     uses: ./.github/workflows/release.yml
     permissions:
       contents: write
 
   deploy:
-    if: github.event.pull_request.merged == true
+    if: github.event_name == 'push'
     needs: [ tests, release ]
     runs-on: ubuntu-latest
     permissions:

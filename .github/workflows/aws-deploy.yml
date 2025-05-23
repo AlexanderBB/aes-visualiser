@@ -1,9 +1,10 @@
-name: Deploy to AWS Lambda
+name: Deployment to AWS
 
 on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
 
 env:
   LAMBDA_FUNCTION_NAME: aes-visualiser
@@ -13,12 +14,22 @@ env:
   RUNTIME: python3.12
 
 jobs:
+  tests:
+    if: github.event.pull_request.merged == true
+    uses: ./.github/workflows/tests.yml
+
+  release:
+    if: github.event.pull_request.merged == true
+    uses: ./.github/workflows/release.yml
+
   deploy:
+    if: github.event.pull_request.merged == true
+    needs: [ tests, release ]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -27,29 +38,24 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-          
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pytest
           pip install -r requirements.txt
-          
-      - name: Run tests
-        run: |
-          echo "🧪 Running tests..."
-          pytest tests/test_aes.py -q --no-header
-          
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
-          
+
       - name: Clean old builds
         run: |
           echo "🧹 Cleaning old builds..."
           rm -rf layer deployment.zip layer.zip
-          
+
       - name: Prepare Lambda layer
         run: |
           echo "📦 Installing dependencies from requirements.txt into layer/python..."
@@ -63,7 +69,7 @@ jobs:
           cd layer
           zip -r9 ../layer.zip .
           cd ..
-          
+
       - name: Check if Layer exists
         id: check_layer
         run: |
@@ -82,7 +88,7 @@ jobs:
             echo "LAYER_VERSION_ARN=$EXISTING_LAYER_ARN" >> $GITHUB_ENV
             echo "✅ Existing Layer found: $EXISTING_LAYER_ARN"
           fi
-          
+
       - name: Upload Lambda Layer
         if: env.UPLOAD_NEW_LAYER == 'true'
         run: |
@@ -96,7 +102,7 @@ jobs:
             --query 'LayerVersionArn' --output text)
           echo "LAYER_VERSION_ARN=$LAYER_VERSION_ARN" >> $GITHUB_ENV
           echo "✅ Using Layer ARN: $LAYER_VERSION_ARN"
-          
+
       - name: Check IAM role
         run: |
           echo "🔎 Checking if IAM role exists..."
@@ -132,7 +138,7 @@ jobs:
           # Get role ARN
           ROLE_ARN=$(aws iam get-role --role-name "$ROLE_NAME" --query 'Role.Arn' --output text)
           echo "ROLE_ARN=$ROLE_ARN" >> $GITHUB_ENV
-          
+
       - name: Check if Lambda function exists
         id: check_function
         run: |
@@ -144,7 +150,7 @@ jobs:
             echo "FUNCTION_EXISTS=false" >> $GITHUB_ENV
             echo "✨ Function does not exist. Will create a new function..."
           fi
-          
+
       - name: Update Lambda function configuration
         if: env.FUNCTION_EXISTS == 'true'
         run: |
@@ -156,7 +162,7 @@ jobs:
             --region "$AWS_REGION" \
             --no-cli-pager
           sleep 5
-          
+
       - name: Create Lambda function
         if: env.FUNCTION_EXISTS == 'false'
         run: |
@@ -172,13 +178,13 @@ jobs:
             --region "$AWS_REGION" \
             --no-cli-pager
           sleep 5
-          
+
       - name: Package application
         run: |
           echo "🗜️ Creating deployment.zip..."
           echo "📦 Including optimized static files for production..."
           zip -r deployment.zip app.py lambda_handler.py aes_lib.py templates/ static/
-          
+
       - name: Update Lambda function code
         run: |
           echo "🚀 Updating Lambda function code..."
@@ -187,7 +193,7 @@ jobs:
             --zip-file fileb://deployment.zip \
             --region "$AWS_REGION" \
             --no-cli-pager
-            
+
       - name: Check for Function URL
         id: check_function_url
         run: |
@@ -206,7 +212,7 @@ jobs:
             echo "FUNCTION_URL=$FUNCTION_URL" >> $GITHUB_ENV
             echo "✅ Function URL exists: $FUNCTION_URL"
           fi
-          
+
       - name: Create Function URL
         if: env.FUNCTION_URL_EXISTS == 'false'
         run: |
@@ -223,7 +229,7 @@ jobs:
             --query 'FunctionUrl' \
             --output text)
           echo "FUNCTION_URL=$FUNCTION_URL" >> $GITHUB_ENV
-          
+
       - name: Add public invoke permission
         run: |
           echo "🔒 Adding public invoke permission to the Function URL..."
@@ -235,7 +241,7 @@ jobs:
             --statement-id allow-public-invoke \
             --region "$AWS_REGION" \
             --no-cli-pager || true
-            
+
       - name: Test deployment
         run: |
           echo ""
@@ -253,7 +259,7 @@ jobs:
             cat /tmp/curl_output.txt
             exit 1
           fi
-          
+
       - name: Deployment summary
         run: |
           echo ""

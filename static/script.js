@@ -318,3 +318,8 @@ function initializeApp() {
 
 // Initialize the application when the DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeApp);
+// Profile button functionality
+document.getElementById('profileBtn').addEventListener('click', function() {
+    var info = document.getElementById('profileInfo');
+    info.classList.toggle('show');
+});

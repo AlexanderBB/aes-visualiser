@@ -28,6 +28,7 @@ jobs:
         run: |
           echo "🔖 Tagging release if VERSION changed..."
           TAG="v${{ steps.read_version.outputs.version }}"
+          git fetch --tags
           if git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "Tag $TAG already exists. Skipping."
           else

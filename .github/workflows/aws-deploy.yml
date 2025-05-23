@@ -56,25 +56,6 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Clean old builds
-        run: |
-          echo "🧹 Cleaning old builds..."
-          rm -rf layer deployment.zip layer.zip
-
-      - name: Prepare Lambda layer
-        run: |
-          echo "📦 Installing dependencies from requirements.txt into layer/python..."
-          mkdir -p layer/python
-          pip install -r requirements.txt -t layer/python
-          
-          echo "📦 Copying aes_lib.py to layer/python..."
-          cp aes_lib.py layer/python/
-          
-          echo "🗜️ Creating layer.zip..."
-          cd layer
-          zip -r9 ../layer.zip .
-          cd ..
-
       - name: Check if Layer exists
         id: check_layer
         run: |
@@ -93,6 +74,25 @@ jobs:
             echo "LAYER_VERSION_ARN=$EXISTING_LAYER_ARN" >> $GITHUB_ENV
             echo "✅ Existing Layer found: $EXISTING_LAYER_ARN"
           fi
+
+
+      - name: Prepare Lambda layer
+        if: env.UPLOAD_NEW_LAYER == 'true'
+        run: |          
+          echo "🧹 Cleaning old builds..."
+          rm -rf layer deployment.zip layer.zip
+          
+          echo "📦 Installing dependencies from requirements.txt into layer/python..."
+          mkdir -p layer/python
+          pip install -r requirements.txt -t layer/python
+          
+          echo "📦 Copying aes_lib.py to layer/python..."
+          cp aes_lib.py layer/python/
+          
+          echo "🗜️ Creating layer.zip..."
+          cd layer
+          zip -r9 ../layer.zip .
+          cd ..
 
       - name: Upload Lambda Layer
         if: env.UPLOAD_NEW_LAYER == 'true'
@@ -113,32 +113,39 @@ jobs:
           echo "🔎 Checking if IAM role exists..."
           if aws iam get-role --role-name "$ROLE_NAME" > /dev/null 2>&1; then
             echo "✅ IAM role exists."
+            echo "ROLE_EXISTS=true" >> $GITHUB_ENV
           else
-            echo "✨ IAM role not found. Creating a new role..."
-            TRUST_POLICY='{
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Principal": {
-                    "Service": "lambda.amazonaws.com"
-                  },
-                  "Action": "sts:AssumeRole"
-                }
-              ]
-            }'
-            aws iam create-role \
-              --role-name "$ROLE_NAME" \
-              --assume-role-policy-document "$TRUST_POLICY" > /dev/null
-
-            echo "🔗 Attaching AWSLambdaBasicExecutionRole policy..."
-            aws iam attach-role-policy \
-              --role-name "$ROLE_NAME" \
-              --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-
-            echo "⌛ Waiting 10 seconds for IAM role propagation..."
-            sleep 10
+            echo "✨ IAM role does not exist. New role will be created ..."
+            echo "ROLE_EXISTS=false" >> $GITHUB_ENV
           fi
+
+      - name: Create IAM role
+        if: env.ROLE_EXISTS == 'false'
+        run: |
+          echo "🔒 Creating IAM role..."
+          TRUST_POLICY='{
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Principal": {
+                  "Service": "lambda.amazonaws.com"
+                },
+                "Action": "sts:AssumeRole"
+              }
+            ]
+          }'
+          aws iam create-role \
+            --role-name "$ROLE_NAME" \
+            --assume-role-policy-document "$TRUST_POLICY" > /dev/null
+
+          echo "🔗 Attaching AWSLambdaBasicExecutionRole policy..."
+          aws iam attach-role-policy \
+            --role-name "$ROLE_NAME" \
+            --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+          echo "⌛ Waiting 10 seconds for IAM role propagation..."
+          sleep 10
           
           # Get role ARN
           ROLE_ARN=$(aws iam get-role --role-name "$ROLE_NAME" --query 'Role.Arn' --output text)
@@ -249,9 +256,8 @@ jobs:
 
       - name: Test deployment
         run: |
-          echo ""
           echo "🧪 Running test request to your Lambda Function URL..."
-          sleep 2
+          sleep 1
           HTTP_RESPONSE=$(curl -s -o /tmp/curl_output.txt -w "%{http_code}" "${{ env.FUNCTION_URL }}")
           
           if [ "$HTTP_RESPONSE" -ge 200 ] && [ "$HTTP_RESPONSE" -lt 300 ]; then
@@ -267,7 +273,5 @@ jobs:
 
       - name: Deployment summary
         run: |
-          echo ""
+          echo "🌐 Your Lambda Function URL: ${{ env.FUNCTION_URL }}"
           echo "🎉 Full Deployment Complete!"
-          echo "🌐 Your Lambda Function URL:"
-          echo "${{ env.FUNCTION_URL }}"

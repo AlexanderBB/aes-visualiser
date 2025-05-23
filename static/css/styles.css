@@ -746,10 +746,11 @@ a.btn-float {
     text-align: center;
     padding: 20px 0;
     background-color: var(--card-bg);
-    color: var(--description-color);
+    color: var(--text-color);
     font-size: 14px;
     border-top: 1px solid var(--table-border);
     transition: var(--transition-normal);
+    margin-top: auto;
 }
 
 .footer a {

@@ -1,7 +1,7 @@
 # AES-128 Web Visualizer 🔒✨
 
 [![Deployment to AWS](https://github.com/AlexanderBB/aes-visualiser/actions/workflows/aws-deploy.yml/badge.svg?branch=main)](https://github.com/AlexanderBB/aes-visualiser/actions/workflows/aws-deploy.yml)
-[![Tests](https://github.com/AlexanderBB/aes-visualiser/actions/workflows/test.yml/badge.svg)](https://github.com/AlexanderBB/aes-visualiser/actions/workflows/test.yml)
+[![Tests](https://github.com/AlexanderBB/aes-visualiser/actions/workflows/tests.yml/badge.svg)](https://github.com/AlexanderBB/aes-visualiser/actions/workflows/tests.yml)
 [![GitHub release](https://img.shields.io/github/release/AlexanderBB/aes-visualiser.svg)](https://github.com/AlexanderBB/aes-visualiser/releases/latest)
 [![GitHub issues](https://img.shields.io/github/issues/AlexanderBB/aes-visualiser.svg)](https://github.com/AlexanderBB/aes-visualiser/issues)
 [![License](https://img.shields.io/github/license/AlexanderBB/aes-visualiser.svg)](https://github.com/AlexanderBB/aes-visualiser/blob/main/LICENSE)

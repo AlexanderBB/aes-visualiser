@@ -4,150 +4,158 @@
     <meta charset="UTF-8">
     <title>AES-128 Visualization</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon/apple-touch-icon.png') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon/favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180"
+          href="{{ url_for('static', filename='favicon/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32"
+          href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16"
+          href="{{ url_for('static', filename='favicon/favicon-16x16.png') }}">
     <link rel="manifest" href="{{ url_for('static', filename='favicon/site.webmanifest') }}">
 </head>
 <body>
-    <button id="themeToggleBtn" class="theme-toggle" title="Toggle Dark/Light Mode">&#9790;</button>
+<button id="themeToggleBtn" class="theme-toggle" title="Toggle Dark/Light Mode">&#9790;</button>
 
-    <div class="visualization-header">
-        <h1>AES-128 Encryption Visualization</h1>
-        <div class="process-summary">
-            <div class="summary-item">
-                <span class="summary-label">Round 0:</span>
-                <span class="summary-value">AddRoundKey (Pre-Whitening)</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Rounds 1-9:</span>
-                <span class="summary-value">SubBytes → ShiftRows → MixColumns → AddRoundKey</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">Round 10:</span>
-                <span class="summary-value">SubBytes → ShiftRows → AddRoundKey</span>
-            </div>
+<div class="visualization-header">
+    <h1>AES-128 Encryption Visualization</h1>
+    <div class="process-summary">
+        <div class="summary-item">
+            <span class="summary-label">Round 0:</span>
+            <span class="summary-value">AddRoundKey (Pre-Whitening)</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">Rounds 1-9:</span>
+            <span class="summary-value">SubBytes → ShiftRows → MixColumns → AddRoundKey</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">Round 10:</span>
+            <span class="summary-value">SubBytes → ShiftRows → AddRoundKey</span>
         </div>
     </div>
+</div>
 
-    <div class="steps-container">
-        {% for step in steps %}
-            {% if 'Round ' in step.title and step.title.split(':')[0] in ['Round 2', 'Round 3', 'Round 4', 'Round 5', 'Round 6', 'Round 7', 'Round 8', 'Round 9'] %}
-                <div class="step round1to9-step rounds2to9-step" style="animation-delay: {{ loop.index0 * 0.2 }}s; display: none;">
-            {% else %}
-                <div class="step{% if 'Final' in step.title or 'Round 10' in step.title %} final-step{% elif 'Round 0' in step.title %} round0-step{% elif 'Round ' in step.title %} round1to9-step{% endif %}" style="animation-delay: {{ loop.index0 * 0.2 }}s;">
+<div class="steps-container">
+    {% for step in steps %}
+        {% if 'Round ' in step.title and step.title.split(':')[0] in ['Round 2', 'Round 3', 'Round 4', 'Round 5', 'Round 6', 'Round 7', 'Round 8', 'Round 9'] %}
+            <div class="step round1to9-step rounds2to9-step"
+                 style="animation-delay: {{ loop.index0 * 0.2 }}s; display: none;">
+        {% else %}
+            <div class="step{% if 'Final' in step.title or 'Round 10' in step.title %} final-step{% elif 'Round 0' in step.title %} round0-step{% elif 'Round ' in step.title %} round1to9-step{% endif %}"
+                 style="animation-delay: {{ loop.index0 * 0.2 }}s;">
+        {% endif %}
+    {% if step.matrix_html %}
+        <div class="step-header">
+            {% if 'Step' not in step.title %}
+                <div class="round-badge">{{ step.title.split(':')[0] }}</div>
             {% endif %}
-                {% if step.matrix_html %}
-                    <div class="step-header">
-                        {% if 'Step' not in step.title %}
-                            <div class="round-badge">{{ step.title.split(':')[0] }}</div>
-                        {% endif %}
-                        <h3>{{ step.title.split(':')[1] }}</h3>
-                    </div>
-                    <div class="step-container">
-                        <div class="matrix step-{{ loop.index }}">
-                            {{ step.matrix_html | safe }}
-                        </div>
-                        <div class="text">
-                            {% if step.description %}
-                                <p class="step-description">{{ step.description }}</p>
-                            {% endif %}
-                            <button class="toggle-btn" data-target="{{ step.id_suffix }}">
-                                <span class="toggle-icon">+</span>
-                                <span class="toggle-text">View Detailed Explanation</span>
-                            </button>
-                            <div class="explanation-content" id="{{ step.id_suffix }}" style="display: none;">
-                                {% if 'Key Generation' in step.title or ('MixColumns' in step.title and step.explanation_rows|length > 0 and step.explanation_rows[0][0] == 'MixColumns Detailed') %}
-                                    <!-- Custom design for Round Key Generation and MixColumns -->
-                                    <div class="key-generation-content">
-                                        {% for line in step.explanation_rows %}
-                                            {% if line[1]|safe|trim %}
-                                                {{ line[1]|safe }}
-                                            {% endif %}
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                    <!-- Standard design for other steps -->
-                                    <div class="explanation-header">
-                                        <h4>Detailed Explanation</h4>
-                                    </div>
-
-                                    <div class="table-wrapper">
-                                        <table>
-                                            <thead>
-                                                <tr>
-                                                    <th>Operation</th>
-                                                    <th>Result</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for line in step.explanation_rows %}
-                                                    <tr>
-                                                        <td>{{ line[0] }}</td>
-                                                        <td>{{ line[1] | safe }}</td>
-                                                    </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                {% else %}
-                    <div class="step-header">
-                        <h3>{{ step.title }}</h3>
-                    </div>
-                    {% if step.description %}
-                        <p class="step-description">{{ step.description }}</p>
-                    {% endif %}
-                    <div class="final-result-box">
-                        {% for line in step.explanation_rows %}
-                            <div class="result-item">
-                                <div class="result-label">{{ line[0] }}:</div>
-                                <div class="result-value">{{ line[1] | safe }}</div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
+            <h3>{{ step.title.split(':')[1] }}</h3>
+        </div>
+        <div class="step-container">
+            <div class="matrix step-{{ loop.index }}">
+                {{ step.matrix_html | safe }}
             </div>
+            <div class="text">
+                {% if step.description %}
+                    <p class="step-description">{{ step.description }}</p>
+                {% endif %}
+                <button class="toggle-btn" data-target="{{ step.id_suffix }}">
+                    <span class="toggle-icon">+</span>
+                    <span class="toggle-text">View Detailed Explanation</span>
+                </button>
+                <div class="explanation-content" id="{{ step.id_suffix }}" style="display: none;">
+                    {% if 'Key Generation' in step.title or ('MixColumns' in step.title and step.explanation_rows|length > 0 and step.explanation_rows[0][0] == 'MixColumns Detailed') %}
+                        <!-- Custom design for Round Key Generation and MixColumns -->
+                        <div class="key-generation-content">
+                            {% for line in step.explanation_rows %}
+                                {% if line[1]|safe|trim %}
+                                    {{ line[1]|safe }}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <!-- Standard design for other steps -->
+                        <div class="explanation-header">
+                            <h4>Detailed Explanation</h4>
+                        </div>
 
-            <!-- Insert the toggle button after Round 1: AddRoundKey -->
-            {% if step.title == 'Round 1: AddRoundKey' %}
-                <div class="rounds-toggle-container">
-                    <button id="toggleRounds2to9Btn" class="toggle-rounds-btn">
-                        <span class="toggle-icon">+</span>
-                        <span class="toggle-text">Show Rounds 2-9</span>
-                    </button>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                <tr>
+                                    <th>Operation</th>
+                                    <th>Result</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for line in step.explanation_rows %}
+                                    <tr>
+                                        <td>{{ line[0] }}</td>
+                                        <td>{{ line[1] | safe }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
                 </div>
-            {% endif %}
-        {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <div class="step-header">
+            <h3>{{ step.title }}</h3>
+        </div>
+        {% if step.description %}
+            <p class="step-description">{{ step.description }}</p>
+        {% endif %}
+        <div class="final-result-box">
+            {% for line in step.explanation_rows %}
+                <div class="result-item">
+                    <div class="result-label">{{ line[0] }}:</div>
+                    <div class="result-value">{{ line[1] | safe }}</div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    </div>
+
+        <!-- Insert the toggle button after Round 1: AddRoundKey -->
+        {% if step.title == 'Round 1: AddRoundKey' %}
+            <div class="rounds-toggle-container">
+                <button id="toggleRounds2to9Btn" class="toggle-rounds-btn">
+                    <span class="toggle-icon">+</span>
+                    <span class="toggle-text">Show Rounds 2-9</span>
+                </button>
+            </div>
+        {% endif %}
+    {% endfor %}
     </div>
 
     <div class="floating-buttons">
         <button id="scrollTopBtn" class="btn-float btn-scroll-top" title="Back to Top">&#8679;</button>
-        <a href="/" class="btn-float btn-new-values" title="Encrypt New Values"><span class="plus-icon" style="text-decoration: none;">+</span></a>
+        <!--<a href="/" class="btn-float btn-new-values" title="Encrypt New Values"><span class="plus-icon" style="text-decoration: none;">+</span></a>-->
+        <a href="/" class="btn-float btn-new-values" title="New Encryption"><span class="plus-icon">+</span></a>
+        <div class="profile-expand-container">
+            <button id="profileBtn" class="btn-float btn-profile" title="About">&#128100;</button> <!--&#128100;-->
+            <div id="profileInfo" class="profile-info">
+                &copy; {{ year }} <a href="https://github.com/AlexanderBB" target="_blank">Aleksandar Boyadzhiev</a>
+                &middot; Licensed under
+                <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache 2.0</a>
+            </div>
+        </div>
     </div>
 
 
-<!-- Production JavaScript (minified) -->
-<script src="{{ url_for('static', filename='js/script.min.js') }}"></script>
-<!--
-    <script>
-      // Night mode auto-detection (prefers-color-scheme)
-      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          document.body.classList.add('night-mode');
-          const icon = document.getElementById('themeToggleBtn');
-          if (icon) {
-              icon.innerHTML = '&#9728;';
+    <!-- Production JavaScript (minified) -->
+    <script src="{{ url_for('static', filename='js/script.min.js') }}"></script>
+    <!--
+        <script>
+          // Night mode auto-detection (prefers-color-scheme)
+          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+              document.body.classList.add('night-mode');
+              const icon = document.getElementById('themeToggleBtn');
+              if (icon) {
+                  icon.innerHTML = '&#9728;';
+              }
           }
-      }
-    </script> -->
-<footer class="footer">
-    <span class="footer-icon">&#128274;</span>
-    &copy; {{ year }} <a href="https://github.com/AlexanderBB" target="_blank">Aleksandar Boyadzhiev</a>
-    &middot; Licensed under
-    <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache 2.0</a>
-</footer>
+        </script> -->
 </body>
 </html>

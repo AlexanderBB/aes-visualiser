@@ -1,6 +1,13 @@
 # AES-128 Web Visualizer 🔒✨
 
 [![Deployment to AWS](https://github.com/AlexanderBB/aes-visualiser/actions/workflows/aws-deploy.yml/badge.svg?branch=main)](https://github.com/AlexanderBB/aes-visualiser/actions/workflows/aws-deploy.yml)
+[![Tests](https://github.com/AlexanderBB/aes-visualiser/actions/workflows/test.yml/badge.svg)](https://github.com/AlexanderBB/aes-visualiser/actions/workflows/test.yml)
+[![GitHub release](https://img.shields.io/github/release/AlexanderBB/aes-visualiser.svg)](https://github.com/AlexanderBB/aes-visualiser/releases/latest)
+[![GitHub issues](https://img.shields.io/github/issues/AlexanderBB/aes-visualiser.svg)](https://github.com/AlexanderBB/aes-visualiser/issues)
+[![License](https://img.shields.io/github/license/AlexanderBB/aes-visualiser.svg)](https://github.com/AlexanderBB/aes-visualiser/blob/main/LICENSE)
+![GitHub last commit](https://img.shields.io/github/last-commit/AlexanderBB/aes-visualiser.svg)
+![Python](https://img.shields.io/badge/python-3.12-blue.svg)
+![Flask](https://img.shields.io/badge/flask-3.1.0-blue.svg)
 
 An interactive web application that visualises the complete AES-128 encryption process step by step. The application
 accepts a 16-byte plaintext and a 16-byte key, and shows all transformations and rounds of the AES algorithm with

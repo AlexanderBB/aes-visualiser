@@ -1,9 +1,7 @@
-name: Unit тests for AES Encryption with OpenSSL
+name: Unit tests for AES Encryption with OpenSSL
+
 on:
-  push:
-    branches:
-      - main
-  pull_request:
+  workflow_call:
 
 jobs:
   test:

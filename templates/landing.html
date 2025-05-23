@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <title>AES-128 Web Visualizer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='favicon/site.webmanifest') }}">
 </head>
 <body>
   <button id="themeToggleBtn" class="theme-toggle" title="Toggle Dark/Light Mode">&#9790;</button>
@@ -42,6 +46,18 @@
       </div>
     </div>
   </div>
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <!-- Production JavaScript (minified) -->
+  <script src="{{ url_for('static', filename='js/script.min.js') }}"></script>
+  <!-- <script>
+    // Night mode auto-detection (prefers-color-scheme)
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('night-mode');
+        const icon = document.getElementById('themeToggleBtn');
+        if (icon) {
+            icon.innerHTML = '&#9728;';
+        }
+    }
+  </script>-->
+
 </body>
 </html>

@@ -181,8 +181,8 @@ def index():
                 # Otherwise, fall back to the original log entries
                 for log_entry in key_expansion_logs:
                     # Use exact match to avoid confusion between rounds (e.g., Round 1 vs Round 10)
-                    if (log_entry[0].startswith(f"Round {round_idx} ") or 
-                        log_entry[0].startswith(f"Generate first column of round key {round_idx}") and (len(log_entry[0]) == len(f"Generate first column of round key {round_idx}") or not log_entry[0][len(f"Generate first column of round key {round_idx}")].isdigit()) or 
+                    if (log_entry[0].startswith(f"Round {round_idx} ") or
+                        log_entry[0].startswith(f"Generate first column of round key {round_idx}") and (len(log_entry[0]) == len(f"Generate first column of round key {round_idx}") or not log_entry[0][len(f"Generate first column of round key {round_idx}")].isdigit()) or
                         log_entry[0].startswith(f"Generate remaining columns of round key {round_idx}") and (len(log_entry[0]) == len(f"Generate remaining columns of round key {round_idx}") or not log_entry[0][len(f"Generate remaining columns of round key {round_idx}")].isdigit())):
                         key_gen_explanation_rows.append(log_entry)
 
@@ -267,8 +267,8 @@ def index():
             # Otherwise, fall back to the original log entries
             for log_entry in key_expansion_logs:
                 # Use exact match to avoid confusion between rounds
-                if (log_entry[0].startswith("Round 10 ") or 
-                    log_entry[0].startswith("Generate first column of round key 10") and (len(log_entry[0]) == len("Generate first column of round key 10") or not log_entry[0][len("Generate first column of round key 10")].isdigit()) or 
+                if (log_entry[0].startswith("Round 10 ") or
+                    log_entry[0].startswith("Generate first column of round key 10") and (len(log_entry[0]) == len("Generate first column of round key 10") or not log_entry[0][len("Generate first column of round key 10")].isdigit()) or
                     log_entry[0].startswith("Generate remaining columns of round key 10") and (len(log_entry[0]) == len("Generate remaining columns of round key 10") or not log_entry[0][len("Generate remaining columns of round key 10")].isdigit())):
                     key_gen_explanation_rows.append(log_entry)
 

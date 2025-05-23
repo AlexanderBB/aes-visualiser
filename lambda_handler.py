@@ -14,4 +14,17 @@ def normalize_event(event):
 def handler(event, context):
     """AWS Lambda handler function."""
     event = normalize_event(event)
-    return response(app, event, context)
+    # Specify binary content types that should be base64 encoded
+    binary_content_types = [
+        'image/png',
+        'image/jpeg',
+        'image/gif',
+        'image/webp',
+        'image/svg+xml',
+        'image/x-icon',
+        'application/octet-stream',
+        'application/pdf',
+        'font/woff',
+        'font/woff2'
+    ]
+    return response(app, event, context, base64_content_types=binary_content_types)

@@ -1,11 +1,13 @@
 from flask import Flask, request, render_template
 import binascii
+from datetime import datetime
 from aes_lib import (
     Sbox, pad, bytes_to_matrix, matrix_to_bytes, sub_bytes, shift_rows, mix_columns,
     add_round_key, rotate_word, expand_key, matrix_to_html, matrices_to_process_html
 )
 
 app = Flask(__name__)
+
 
 # Add a custom filter for hex formatting
 @app.template_filter('hex')
@@ -43,8 +45,8 @@ def index():
         for i in range(4):
             for j in range(4):
                 explanation_rows.append((
-                    f"Character '{chr(word[i+4*j])}' to Hex",
-                    f"0x{word[i+4*j]:02X}"
+                    f"Character '{chr(word[i + 4 * j])}' to Hex",
+                    f"0x{word[i + 4 * j]:02X}"
                 ))
         steps.append({
             'title': 'Step 1: Convert Plaintext to 4×4 Hex Matrix',
@@ -60,8 +62,8 @@ def index():
         for i in range(4):
             for j in range(4):
                 explanation_rows.append((
-                    f"Character '{chr(key[i+4*j])}' to Hex",
-                    f"0x{key[i+4*j]:02X}"
+                    f"Character '{chr(key[i + 4 * j])}' to Hex",
+                    f"0x{key[i + 4 * j]:02X}"
                 ))
         steps.append({
             'title': 'Step 2: Convert Key to 4×4 Hex Matrix',
@@ -182,8 +184,13 @@ def index():
                 for log_entry in key_expansion_logs:
                     # Use exact match to avoid confusion between rounds (e.g., Round 1 vs Round 10)
                     if (log_entry[0].startswith(f"Round {round_idx} ") or
-                        log_entry[0].startswith(f"Generate first column of round key {round_idx}") and (len(log_entry[0]) == len(f"Generate first column of round key {round_idx}") or not log_entry[0][len(f"Generate first column of round key {round_idx}")].isdigit()) or
-                        log_entry[0].startswith(f"Generate remaining columns of round key {round_idx}") and (len(log_entry[0]) == len(f"Generate remaining columns of round key {round_idx}") or not log_entry[0][len(f"Generate remaining columns of round key {round_idx}")].isdigit())):
+                            log_entry[0].startswith(f"Generate first column of round key {round_idx}") and (
+                                    len(log_entry[0]) == len(f"Generate first column of round key {round_idx}") or not
+                            log_entry[0][len(f"Generate first column of round key {round_idx}")].isdigit()) or
+                            log_entry[0].startswith(f"Generate remaining columns of round key {round_idx}") and (
+                                    len(log_entry[0]) == len(
+                                f"Generate remaining columns of round key {round_idx}") or not log_entry[0][
+                                len(f"Generate remaining columns of round key {round_idx}")].isdigit())):
                         key_gen_explanation_rows.append(log_entry)
 
             steps.append({
@@ -268,8 +275,12 @@ def index():
             for log_entry in key_expansion_logs:
                 # Use exact match to avoid confusion between rounds
                 if (log_entry[0].startswith("Round 10 ") or
-                    log_entry[0].startswith("Generate first column of round key 10") and (len(log_entry[0]) == len("Generate first column of round key 10") or not log_entry[0][len("Generate first column of round key 10")].isdigit()) or
-                    log_entry[0].startswith("Generate remaining columns of round key 10") and (len(log_entry[0]) == len("Generate remaining columns of round key 10") or not log_entry[0][len("Generate remaining columns of round key 10")].isdigit())):
+                        log_entry[0].startswith("Generate first column of round key 10") and (
+                                len(log_entry[0]) == len("Generate first column of round key 10") or not log_entry[0][
+                            len("Generate first column of round key 10")].isdigit()) or
+                        log_entry[0].startswith("Generate remaining columns of round key 10") and (
+                                len(log_entry[0]) == len("Generate remaining columns of round key 10") or not
+                        log_entry[0][len("Generate remaining columns of round key 10")].isdigit())):
                     key_gen_explanation_rows.append(log_entry)
 
         steps.append({
@@ -325,9 +336,9 @@ def index():
             'id_suffix': 'final_result'
         })
 
-        return render_template('visualize.html', steps=steps)
+        return render_template('visualize.html', steps=steps, year=datetime.now().year)
 
-    return render_template('landing.html')
+    return render_template('landing.html', year=datetime.now().year)
 
 
 if __name__ == '__main__':
